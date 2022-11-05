@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-const char* convert_enum[29] = {
+const char* convert_enum[30] = {
         "dummy",
         "VOID",
         "INT",
@@ -36,17 +36,14 @@ const char* convert_enum[29] = {
         "STRING"
 };
 
+
+
 int main()
 {
-	std::vector<std::string> token;
-	while ((token = yylex())) {
-	  // Your code here
-        printf("%d %s %s\n", yylineno,convert_enum[itoa(token[1])],yytext)
-	}
-    //this is for simple case of show token as seen in tutorial
+	int token;
+
     while ((token = yylex())) {
-        // Your code here
-        printf("%d %s %s\n", yylineno,convert_enum[itoa(token)],yytext)
+        printf("%d %s %s\n", yylineno,convert_enum[token],yytext);
     }
 	return 0;
 }
