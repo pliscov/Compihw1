@@ -2,7 +2,10 @@
 /* Declarations section */
 #include <stdio.h>
 #include "tokens.hpp"
-void showToken(tokentype token);
+#include <vector>
+#include <string>
+std::vector<std::string> showToken(tokentype token);
+void throwError();
 %}
 
 %option yylineno
@@ -14,6 +17,7 @@ relop           (==|!=|<|>|<=|>=)
 newline         \n|\r|\r\n
 comment         //[^(\r\n)]*
 num             [1-9]+[0-9]*
+whitespace      [\t\x20\r\n]
 
 %%
 (void)                      showToken(VOID);
@@ -47,17 +51,23 @@ id                          showToken(ID);
 comment                     showToken(COMMENT);
 num                         showToken(NUM);
 string                      showToken(STRING);
-.                           printf("Lex doesnt know what that is!\n");
+whitespace                  ;
+.                           throwError();
 %%
 
 
-
-
-%%
-
-void showToken(tokentype token){
-        printf("%d %d %s", idk, token,
-        printf("token is %s",name);
-        printf("lexeme is %s",yytext);
-        printf("length is ""%d",yyleng);
+std::vector<std::string> showToken(tokentype token){
+    std::vector<std::string> token_data;
+    token_data.push_back(std::string(yylineno));
+    token_data.push_back(std::string(token));
+    token_data.push_back(std::string(yytext));
+    return token_data;
 }
+
+void throwError(){
+    printf("Error %s",
+    exit(0)
+}
+
+"safiuasdf
+dasd"
