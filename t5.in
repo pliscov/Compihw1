@@ -1,0 +1,5 @@
+int main(void){
+	printf("this is a normal \x63oo\x6c string");
+	printf("this is not a normal string\q");
+	return 0;
+}

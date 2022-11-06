@@ -1,0 +1,5 @@
+int main(void){
+	printf("this is a normal string");
+	printf("this is not a normal string\q");
+	return 0;
+}
