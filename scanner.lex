@@ -15,17 +15,17 @@ id              ([a-zA-z][a-zA-z0-9]*)
 comment         (//)
 relop           (==|!=|<|>|<=|>=)
 newline         \n|\r|\r\n
-escape          (\\(n|\\r|\\t|\\0|\\))|(\\x[0-9A-Fa-f][0-9A-Fa-f])
-chars           [ !\x23-\x5B\x5D-\x7E]
-illegal_escape  \\[^nrt0x\\]
+escape          (\\(n|r|t|0|\\|\"))|(\\x.?.?)
+chars           [\t!\x23-\x5B\x5D-\x7E ]
+illegal_escape  (\\[^nrt0x\\\"])
 str             ({chars}|{escape})*
-unclosed_str    \"{str}{newline}
+unclosed_str    (\"{str}\\?)
 illegal_str     \"{str}{illegal_escape}
 
 
 
 num             0|([1-9]+[0-9]*)
-whitespace      [\t ]
+whitespace      [\t]
 unprintable     [^\x20-\x7E\t\r\n]
 
 %x COMM
@@ -60,15 +60,15 @@ unprintable     [^\x20-\x7E\t\r\n]
 {relop}                     return RELOP;
 {id}                        return ID;
 {num}                       return NUM;
-{unclosed_str}              throwError(2);
-{illegal_str}               throwError(3); 
 \"{str}\"                   return STRING;
+{unclosed_str}              throwError(2);
+{illegal_str}               throwError(3);
 {whitespace}                {}
 \/\/                        {BEGIN(COMM); return COMMENT;}
-\n                          {yylineno++; yylineno--;}
-<COMM>\n                    BEGIN(INITIAL);
-<COMM>[^\n]                 {}           
-
+\n|\r\n                     {yylineno++; yylineno--;}
+<COMM>\n|\r|\r\n            BEGIN(INITIAL);
+<COMM>[^\n\r]               {}
+.                           {}
 
 
 %%

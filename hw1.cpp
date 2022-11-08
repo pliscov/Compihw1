@@ -37,7 +37,9 @@ const char* convert_enum[30] = {
         "STRING"
 };
 
-
+bool isHexa(char c){
+    return ('a' <= c  && c <= 'f')||('A' <= c && c <= 'F')||('0' <= c && c <= '9' );
+}
 
 bool isEscape(char c) {
     return (c == '\\');
@@ -52,7 +54,6 @@ char makeEscape(char c){
         case '\\': return '\\';
         case '\"': return '\"';
         default:{
-            printf("this is from cpp file and shouldn't happen\n");
             printf("Error undefined escape sequence %c\n", c);
             exit(0);
         }
@@ -79,10 +80,35 @@ void handleEscape(int& i){ // one function to handle escapes, it isn't pretty an
         i += 2;
     }
     else if (isEscape(yytext[i+1]))
-        printf("\\\\");
+        printf("\\");
     else    
         printf("%c", makeEscape(yytext[i+1]));
     i++;
+}
+
+void checkEscape(int& i){
+    if (yytext[i+1] == 'x'){
+        if (i + 4 >= yyleng) {
+            printf("Error undefined escape sequence x");
+            if (i + 3 < yyleng)
+                printf("%c", yytext[i+2]);
+            printf("\n");
+            exit(0);
+        }
+        if ((!isHexa(yytext[i+2])) || !isHexa(yytext[i+3])){
+            printf("Error undefined escape sequence x%c%c\n", yytext[i+2], yytext[i+3]);
+            exit(0);
+        }
+
+        char c = makeHexa(i);
+        //if (c > 0x7e || (c < 0x20 && (c != '\n' && (c != '\r' && c != '\t')))){
+
+        if ((int)c > 0x7F || (int)c < 0){
+            printf("Error undefined escape sequence x%c%c\n", yytext[i+2], yytext[i+3]);
+            exit(0);
+        }
+    }
+
 }
 
 
@@ -91,16 +117,24 @@ int main() {
     while ((token = yylex())) {
         
         // Your code here
-
         if (token == (int)COMMENT)
             printf("%d COMMENT //\n", yylineno);
 
         else if (token == (int)STRING) {
+            for (int i = 0; i < yyleng; i++) {
+                if (isEscape(yytext[i]) && isEscape(yytext[i+1]))
+                    i++;
+                else if (isEscape(yytext[i]))
+                    checkEscape(i);
+            }
+
             printf("%d STRING ", yylineno);
+
             for (int i = 0; i < yyleng; i++) {
                 if (yytext[i] == '\"')
                     continue;
                 if (isEscape(yytext[i]))
+
                     handleEscape(i);
                 else
                     printf("%c", yytext[i]);
