@@ -88,13 +88,17 @@ void handleEscape(int& i){ // one function to handle escapes, it isn't pretty an
 
 void checkEscape(int& i){
     if (yytext[i+1] == 'x'){
-        if (i + 4 >= yyleng) {
-            printf("Error undefined escape sequence x");
-            if (i + 3 < yyleng)
-                printf("%c", yytext[i+2]);
-            printf("\n");
+
+        if (i + 3 == yyleng) { // \xD"
+            printf("Error undefined escape sequence x\n");
             exit(0);
         }
+        if (i + 4 == yyleng) { // \xD"
+            printf("Error undefined escape sequence x%c\n", yytext[i+2]);
+            exit(0);
+        }
+
+        if (i + 5 >= yyleng) 
         if ((!isHexa(yytext[i+2])) || !isHexa(yytext[i+3])){
             printf("Error undefined escape sequence x%c%c\n", yytext[i+2], yytext[i+3]);
             exit(0);
@@ -133,8 +137,14 @@ int main() {
             for (int i = 0; i < yyleng; i++) {
                 if (yytext[i] == '\"')
                     continue;
-                if (isEscape(yytext[i]))
+                if (i + 2 < yyleng && yytext[i] == '\\' && yytext[i+1] == '0'){
+                    break;
+                }
 
+                if (i + 4 < yyleng && yytext[i] == '\\' && yytext[i+1] == 'x' && yytext[i+2] == '0' && yytext[i+3] == '0'){
+                    break;
+                }
+                if (isEscape(yytext[i]))
                     handleEscape(i);
                 else
                     printf("%c", yytext[i]);

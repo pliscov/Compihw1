@@ -15,7 +15,8 @@ id              ([a-zA-z][a-zA-z0-9]*)
 comment         (//)
 relop           (==|!=|<|>|<=|>=)
 newline         \n|\r|\r\n
-escape          (\\(n|r|t|0|\\|\"))|(\\x.?.?)
+
+escape          (\\(n|r|t|0|\\|\"))|(\\x[^\"]?[^\"]?)
 chars           [\t!\x23-\x5B\x5D-\x7E ]
 illegal_escape  (\\[^nrt0x\\\"])
 str             ({chars}|{escape})*
@@ -62,6 +63,7 @@ unprintable     [^\x20-\x7E\t\r\n]
 {num}                       return NUM;
 \"{str}\"                   return STRING;
 {unclosed_str}              throwError(2);
+
 {illegal_str}               throwError(3);
 {whitespace}                {}
 \/\/                        {BEGIN(COMM); return COMMENT;}
@@ -79,9 +81,11 @@ void throwError(int num){
         printf("Error unrecognized character\n");
     else if (num == 1)
         printf("Error %c\n", yytext);
-    else if (num == 2)
+    else if (num == 2){
         printf("Error unclosed string\n");
-    else if (num == 3)
+    }
+    else if (num == 3){
         printf("Error undefined escape sequence %c\n", yytext[yyleng - 1]);
+    }
     exit(0);
 }
