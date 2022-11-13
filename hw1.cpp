@@ -104,6 +104,10 @@ void checkEscape(int& i){
             exit(0);
         }
 
+        if (!isHexa(yytext[i+2]) || !isHexa(yytext[i+3])){
+            printf("Error undefined escape sequence x%c%c\n", yytext[i+2], yytext[i+3]);
+            exit(0);
+        }
         char c = makeHexa(i);
         //if (c > 0x7e || (c < 0x20 && (c != '\n' && (c != '\r' && c != '\t')))){
 
