@@ -2,7 +2,8 @@
 	#include <iostream>
 	#include <stdlib.h>
 	#include "hw3_output.hpp"
-
+	#include "types.hpp"
+	TableManager manager;
 	extern int yylex();
 	extern int yylineno;
 	extern int yyleng;
@@ -49,7 +50,9 @@ Program 	: Funcs		{output::printProductionRule(1);}
 Funcs		: /*epsilon*/		{output::printProductionRule(2);}
 			| FuncsDecl Funcs	{output::printProductionRule(3);}
 ;
-FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {output::printProductionRule(4);}
+FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {
+																			
+																		}
 ;
 RetType 	: Type	{output::printProductionRule(5);}
 			| VOID  {output::printProductionRule(6);}
@@ -78,7 +81,15 @@ Statement 	: LBRACE Statements RBRACE {output::printProductionRule(14);}
 			| BREAK SC {output::printProductionRule(24);}
 			| CONTINUE SC {output::printProductionRule(25);}
 ;
-Call 		: ID LPAREN ExpList RPAREN		{output::printProductionRule(26);}
+Call 		: ID LPAREN ExpList RPAREN		{
+												$$.type = 
+												Func func = dynamic_cast<Func> manager.get($1.name);
+												if (!func.legalParams($3)){
+													output::errorPrototypeMismatch();
+													
+												}
+												
+											}
 	 		| ID LPAREN RPAREN				{output::printProductionRule(27);}
 ;
 ExpList 	: Exp	{output::printProductionRule(28);}
@@ -94,11 +105,11 @@ Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}
 			| Exp MULT Exp	{output::printProductionRule(35);}
 			| ID 	{output::printProductionRule(36);}
 			| Call	{output::printProductionRule(37);}
-			| NUM	{output::printProductionRule(38);}
-			| NUM B {output::printProductionRule(39);}
-			| STRING	{output::printProductionRule(40);}
-			| TRUE		{output::printProductionRule(41);}
-			| FALSE		{output::printProductionRule(42);}
+			| NUM	{$$.type = "int";}
+			| NUM B {$$.type = "byte";}
+			| STRING	{$$.type = "string";}
+			| TRUE		{$$.type = "bool";}
+			| FALSE		{$$.type = "bool";}
 			| NOT Exp	{output::printProductionRule(43);}
 			| Exp AND Exp	{output::printProductionRule(44);}
 			| Exp OR Exp	{output::printProductionRule(45);}
