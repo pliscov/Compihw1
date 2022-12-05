@@ -1,0 +1,120 @@
+%{
+	#include <iostream>
+	#include <stdlib.h>
+	#include "hw3_output.hpp"
+
+	extern int yylex();
+	extern int yylineno;
+	extern int yyleng;
+	extern char* yytext;
+	int yyerror(const char * message);
+%}
+
+
+%right IF
+%right ELSE
+
+%token VOID
+%token INT
+%token BYTE
+%token B
+%token BOOL
+%token TRUE
+%token FALSE
+%token RETURN
+%token WHILE
+%token BREAK
+%token CONTINUE
+%token SC
+%token COMMA
+%token ASSIGN
+%token RELOP
+%token ID
+%token NUM
+%token STRING
+
+
+%left OR
+%left AND
+%left RELOP
+%left ADD
+%left MULT
+%left NOT
+%right LBRACE RBRACE LPAREN RPAREN
+
+%%
+
+Program 	: Funcs		{output::printProductionRule(1);}
+;
+Funcs		: /*epsilon*/		{output::printProductionRule(2);}
+			| FuncsDecl Funcs	{output::printProductionRule(3);}
+;
+FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {output::printProductionRule(4);}
+;
+RetType 	: Type	{output::printProductionRule(5);}
+			| VOID  {output::printProductionRule(6);}
+;
+Formals 	: /*epsilon*/ {output::printProductionRule(7);}
+			| FormalsList {output::printProductionRule(8);}
+;
+FormalsList : FormalDecl {output::printProductionRule(9);}
+			| FormalDecl COMMA FormalsList {output::printProductionRule(10);}
+;
+FormalDecl 	: Type ID {output::printProductionRule(11);}
+;
+Statements 	: Statement {output::printProductionRule(12);}
+		   	| Statements Statement {output::printProductionRule(13);}
+;
+Statement 	: LBRACE Statements RBRACE {output::printProductionRule(14);}
+			| Type ID SC 			{output::printProductionRule(15);}
+			| Type ID ASSIGN Exp SC {output::printProductionRule(16);}
+			| ID ASSIGN Exp SC  	{output::printProductionRule(17);}
+			| Call SC 				{output::printProductionRule(18);}
+			| RETURN SC				{output::printProductionRule(19);}
+			| RETURN Exp SC			{output::printProductionRule(20);}
+			| IF LPAREN Exp RPAREN Statement {output::printProductionRule(21);} %prec IF
+			| IF LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(22);}
+			| WHILE LPAREN Exp RPAREN Statement {output::printProductionRule(23);}
+			| BREAK SC {output::printProductionRule(24);}
+			| CONTINUE SC {output::printProductionRule(25);}
+;
+Call 		: ID LPAREN ExpList RPAREN		{output::printProductionRule(26);}
+	 		| ID LPAREN RPAREN				{output::printProductionRule(27);}
+;
+ExpList 	: Exp	{output::printProductionRule(28);}
+			| Exp COMMA ExpList		{output::printProductionRule(29);}
+;
+Type 		: INT	{output::printProductionRule(30);}
+			| BYTE	{output::printProductionRule(31);}
+			| BOOL	{output::printProductionRule(32);}
+;
+Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}
+			| Exp IF LPAREN Exp RPAREN ELSE Exp {output::printProductionRule(34)}
+			| Exp ADD Exp 	{output::printProductionRule(35);}
+			| Exp MULT Exp	{output::printProductionRule(35);}
+			| ID 	{output::printProductionRule(36);}
+			| Call	{output::printProductionRule(37);}
+			| NUM	{output::printProductionRule(38);}
+			| NUM B {output::printProductionRule(39);}
+			| STRING	{output::printProductionRule(40);}
+			| TRUE		{output::printProductionRule(41);}
+			| FALSE		{output::printProductionRule(42);}
+			| NOT Exp	{output::printProductionRule(43);}
+			| Exp AND Exp	{output::printProductionRule(44);}
+			| Exp OR Exp	{output::printProductionRule(45);}
+			| Exp RELOP Exp	{output::printProductionRule(46);}
+			| LPAREN Type RPAREN Exp	{output::printProductionRule(47);}
+;
+
+%%
+
+int main()
+{
+	return yyparse();
+}
+
+int yyerror(const char * message)
+{
+	output::errorSyn(yylineno);
+	exit(1);
+}
