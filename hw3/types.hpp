@@ -39,7 +39,7 @@ public:
 };
 
 class SymbolTable{
-    private:
+    public:
         std::vector<YYSTYPE> table;
 
     public:
@@ -63,7 +63,7 @@ class TableManager{
         void insertID(YYSTYPE& var);
         void newScope(std::string scope_type);
         void popScope();
-        bool contains(std::string type);
+        bool contains(std::string symbol_name);
         bool inScope(std::string scope_type);
         bool legalReturn(std::string return_type);
         YYSTYPE* get(std::string symbol_name);

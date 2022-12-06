@@ -35,6 +35,7 @@
 %token NUM
 %token STRING
 %type <FormalsList> Formals FormalsList
+%type <ExpList> ExpList
 %type <Func> FuncsDecl
 
 %left OR
@@ -62,7 +63,7 @@ FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE    #some issues to solve sc
 			} Statements RBRACE 	
 {
 
-	manager.popScope();
+	output::endScope();manager.popScope();
 
 }
 ;
@@ -75,15 +76,13 @@ Formals 	: /*epsilon*/ {}
 FormalsList : FormalDecl {$$.list.push_back(YYSTYPE($1));}
 			| FormalDecl COMMA FormalsList { $$.list.push_back($1); $$.list += $3.list;}
 ;
-FormalDecl 	: Type ID {$$.type = $1.type; $$.name = $2.name;}
+FormalDecl 	: Type ID {if(manager.contains($2.name)){output::errorDef();}$$.type = $1.type; $$.name = $2.name;}
 ;
-Statements 	: Statement {output::printProductionRule(12);}
-		   	| Statements Statement {output::printProductionRule(13);}
+Statements 	: Statement
+		   	| Statements Statement
 ;
-Statement 	: LBRACE {manager.newScope();} Statements RBRACE 
-{
-	manager.popScope();
-}
+Statement 	: LBRACE {manager.newScope();} Statements RBRACE {output::endScope();manager.popScope();}
+
 			| Type ID SC 			{ /* insert new symbol */
 										if (manager.contains($2.name))
 											output::errorDef(yylineno, $2.name);
@@ -135,8 +134,8 @@ Call 		: ID LPAREN ExpList RPAREN		{
 											}
 	 		| ID LPAREN RPAREN				{}
 ;
-ExpList 	: Exp	{output::printProductionRule(28);}
-			| Exp COMMA ExpList		{output::printProductionRule(29);}
+ExpList 	: Exp	{$$.list.push_back($1)}
+			| Exp COMMA ExpList		{$$.list.push_back($1);$$list += $3.list;}
 ;
 Type 		: INT	{ $$.type = "INT";}
 			| BYTE	{ $$.type = "BYTE";}
