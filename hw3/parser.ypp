@@ -33,7 +33,8 @@
 %token ID
 %token NUM
 %token STRING
-
+%type <FormalsList> Formals FormalsList
+%type <Func> FuncsDecl
 
 %left OR
 %left AND
@@ -50,44 +51,89 @@ Program 	: Funcs		{output::printProductionRule(1);}
 Funcs		: /*epsilon*/		{output::printProductionRule(2);}
 			| FuncsDecl Funcs	{output::printProductionRule(3);}
 ;
-FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE {
-																			
-																		}
+FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE 
+			{ /* this marker is $7 */
+				manager.newScope();
+				int offset = -1;
+				/* insert parameters into scope symbol table and into $$*/
+				for (std::iterator<YYSTYPE> y = $4.ids.begin(); y < $4.ids.end(); y++)
+				{
+					manager.insertID(YYSTYPE(y.name, y.type, offset--));
+					/* is this necessary ?? */ $$.types.push_back(y.type);
+				}
+				/* this also necessary ? */ $$.ret_type = $1.type;
+
+			} Statements RBRACE 	
+{
+
+	manager.popScope();
+
+}
 ;
-RetType 	: Type	{output::printProductionRule(5);}
-			| VOID  {output::printProductionRule(6);}
+RetType 	: Type	{$$.type = $$.name = $1.type;}
+			| VOID  {$$.type = "void"}
 ;
-Formals 	: /*epsilon*/ {output::printProductionRule(7);}
-			| FormalsList {output::printProductionRule(8);}
+Formals 	: /*epsilon*/ {}
+			| FormalsList {$$.list = $1.list;}
 ;
-FormalsList : FormalDecl {output::printProductionRule(9);}
-			| FormalDecl COMMA FormalsList {output::printProductionRule(10);}
+FormalsList : FormalDecl {$$.list.push_back(YYSTYPE($1));}
+			| FormalDecl COMMA FormalsList { $$.list.push_back($1); $$.list += $3.list;}
 ;
-FormalDecl 	: Type ID {output::printProductionRule(11);}
+FormalDecl 	: Type ID {$$.type = $1.type; $$.name = $2.name;}
 ;
 Statements 	: Statement {output::printProductionRule(12);}
 		   	| Statements Statement {output::printProductionRule(13);}
 ;
-Statement 	: LBRACE Statements RBRACE {output::printProductionRule(14);}
-			| Type ID SC 			{output::printProductionRule(15);}
-			| Type ID ASSIGN Exp SC {output::printProductionRule(16);}
-			| ID ASSIGN Exp SC  	{output::printProductionRule(17);}
+Statement 	: LBRACE {manager.newScope();} Statements RBRACE 
+{
+	manager.popScope();
+}
+			| Type ID SC 			{ /* insert new symbol */
+										if (manager.contains($2.name))
+											output::errorDef(yylineno, $2.name);
+										else
+											manager.insertID(YYSTYPE($2.name, $1.type));
+									}
+			| Type ID ASSIGN Exp SC { /* insert a symbol, maybe cast */
+										/*todo*/
+									}
+			| ID ASSIGN Exp SC  	{ /* maybe cast */
+										/*todo*/
+									}
 			| Call SC 				{output::printProductionRule(18);}
-			| RETURN SC				{output::printProductionRule(19);}
-			| RETURN Exp SC			{output::printProductionRule(20);}
+			| RETURN SC				{/* check void ret type */
+										if (manager.tables_stack.back().ret_type != "void")
+										{
+											/* error return mismatch*/
+											output::errorMismatch(yylineno);
+										}
+									}
+			| RETURN Exp SC			{ /* check NOT void ret type */
+										if (manager.tables_stack.back().ret_type != $2.type || $2.type == "void")
+										{
+											/* error return mismatch*/
+											output::errorMismatch(yylineno);
+										}
+									}
 			| IF LPAREN Exp RPAREN Statement {output::printProductionRule(21);} %prec IF
 			| IF LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(22);}
 			| WHILE LPAREN Exp RPAREN Statement {output::printProductionRule(23);}
-			| BREAK SC {output::printProductionRule(24);}
-			| CONTINUE SC {output::printProductionRule(25);}
+
+			| BREAK SC  	{ 
+								if (manager.tables_stack.back().scope_type != "while")
+									output::errorUnexpectedBreak(yylineno);
+							}
+			| CONTINUE SC   {
+							if (manager.tables_stack.back().scope_type != "while")
+								output::errorUnexpectedContinue(yylineno);
+							}
 ;
 Call 		: ID LPAREN ExpList RPAREN		{
-												$$.type = 
-												Func func = dynamic_cast<Func> manager.get($1.name);
+												Func& func = dynamic_cast<Func> manager.get($1.name);
 												if (!func.legalParams($3)){
 													output::errorPrototypeMismatch();
-													
 												}
+												$$.type = func.ret_type;
 												
 											}
 	 		| ID LPAREN RPAREN				{output::printProductionRule(27);}
@@ -95,9 +141,9 @@ Call 		: ID LPAREN ExpList RPAREN		{
 ExpList 	: Exp	{output::printProductionRule(28);}
 			| Exp COMMA ExpList		{output::printProductionRule(29);}
 ;
-Type 		: INT	{output::printProductionRule(30);}
-			| BYTE	{output::printProductionRule(31);}
-			| BOOL	{output::printProductionRule(32);}
+Type 		: INT	{ $$.type = "int";}
+			| BYTE	{ $$.type = "byte";}
+			| BOOL	{ $$.type = "bool";}
 ;
 Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}
 			| Exp IF LPAREN Exp RPAREN ELSE Exp {output::printProductionRule(34)}
