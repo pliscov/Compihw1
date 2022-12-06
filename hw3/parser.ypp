@@ -124,12 +124,12 @@ Statement 	: LBRACE {manager.newScope();} Statements RBRACE
 									output::errorUnexpectedBreak(yylineno);
 							}
 			| CONTINUE SC   {
-							if (manager.tables_stack.back().scope_type != "while")
-								output::errorUnexpectedContinue(yylineno);
+								if (manager.tables_stack.back().scope_type != "while")
+									output::errorUnexpectedContinue(yylineno);
 							}
 ;
 Call 		: ID LPAREN ExpList RPAREN		{
-												Func& func = dynamic_cast<Func> manager.get($1.name);
+												Func& func = dynamic_cast<Func> *(manager.get($1.name));
 												if (!func.legalParams($3)){
 													output::errorPrototypeMismatch();
 												}
