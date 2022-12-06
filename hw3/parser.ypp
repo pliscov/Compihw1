@@ -1,6 +1,6 @@
 %{
 	#include <iostream>
-	#include <stdlib.h>
+	#include <cstdlib>
 	#include "hw3_output.hpp"
 	#include "types.hpp"
 	TableManager manager;
@@ -90,16 +90,14 @@ Statement 	: LBRACE {manager.newScope();} Statements RBRACE
 											manager.insertID(YYSTYPE($2.name, $1.type));
 									}
 			| Type ID ASSIGN Exp SC { /* insert a symbol, maybe cast */
+										if (!($1.type == $4.type))
+											output::errorMismatch(yylineno);
 										/*todo*/
 									}
 			| ID ASSIGN Exp SC  	{ /* maybe cast */
-										/*todo*/
-									}
-			| Call SC 				{output::printProductionRule(18);}
-			| RETURN SC				{/* check void ret type */
-										if (!manager.legalReturn("void"))
+										YYSTYPE& y = *(manager.get($1.name));
+										if (!(isCastable(y.type, $3.type)))
 										{
-											/* error return mismatch*/
 											output::errorMismatch(yylineno);
 										}
 									}
@@ -131,7 +129,7 @@ Call 		: ID LPAREN ExpList RPAREN		{
 												$$.type = func.ret_type;
 												
 											}
-	 		| ID LPAREN RPAREN				{output::printProductionRule(27);}
+	 		| ID LPAREN RPAREN				{}
 ;
 ExpList 	: Exp	{output::printProductionRule(28);}
 			| Exp COMMA ExpList		{output::printProductionRule(29);}

@@ -4,9 +4,9 @@
 
 class YYSTYPE {
     public:
-        std::vector<std::string> values;
-        const string name;
-        const string type;
+
+        std::string name;
+        std::string type;
         int offset;
         YYSTYPE() = default;
         YYSTYPE(string name, string type):
@@ -15,7 +15,6 @@ class YYSTYPE {
          values(values), name(name), type(type){}
         YYSTYPE(string name, string type, int offset):
          name(name), type(type), offset(offset){}
-
         
 }
 
