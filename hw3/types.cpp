@@ -5,8 +5,8 @@
 
 // FUNC //
 
-Func::Func(std::vector<std::string> types, std::string ret_type){
-    this->types = std::vector<std::string>(types);
+Func::Func(std::vector<YYSTYPE> params, std::string ret_type){
+    this->params = std::vector<YYSTYPE>(params);
     this->ret_type = ret_type;
 }
 
@@ -17,7 +17,7 @@ bool Func::legalRet(std::string ret_type){
 bool Func::legalParams(std::vector<YYSTYPE> param_list){
     if (this->params.size() != param_list.size())
         return false;
-    for (int i = 0; i < types.size(); i++)
+    for (int i = 0; i < params.size(); i++)
         if (param_list[i].type != params[i].type)
             return false;
     return true;

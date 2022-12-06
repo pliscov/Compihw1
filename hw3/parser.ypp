@@ -3,6 +3,7 @@
 	#include <cstdlib>
 	#include "hw3_output.hpp"
 	#include "types.hpp"
+	#include "utils.cpp"
 	TableManager manager;
 	extern int yylex();
 	extern int yylineno;
@@ -96,10 +97,12 @@ Statement 	: LBRACE {manager.newScope();} Statements RBRACE
 									}
 			| ID ASSIGN Exp SC  	{ /* maybe cast */
 										YYSTYPE& y = *(manager.get($1.name));
-										if (!(isCastable(y.type, $3.type)))
+										
+										if (!legalImplicitCast(y.type, $3.type) || (y.type == $3.type))
 										{
 											output::errorMismatch(yylineno);
 										}
+										
 									}
 			| RETURN Exp SC			{ /* check NOT void ret type */
 										if (!manager.legalReturn($2.type)
@@ -125,6 +128,7 @@ Call 		: ID LPAREN ExpList RPAREN		{
 												Func& func = dynamic_cast<Func> *(manager.get($1.name));
 												if (!func.legalParams($3)){
 													output::errorPrototypeMismatch();
+													
 												}
 												$$.type = func.ret_type;
 												
@@ -134,26 +138,72 @@ Call 		: ID LPAREN ExpList RPAREN		{
 ExpList 	: Exp	{output::printProductionRule(28);}
 			| Exp COMMA ExpList		{output::printProductionRule(29);}
 ;
-Type 		: INT	{ $$.type = "int";}
-			| BYTE	{ $$.type = "byte";}
-			| BOOL	{ $$.type = "bool";}
+Type 		: INT	{ $$.type = "INT";}
+			| BYTE	{ $$.type = "BYTE";}
+			| BOOL	{ $$.type = "BOOL";}
 ;
-Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}                  #TYPES HAVE TO BE CAPITILIZED LIKE RULES GIVEN IN HW3 PDF
-			| Exp IF LPAREN Exp RPAREN ELSE Exp {output::printProductionRule(34)}
-			| Exp ADD Exp 	{output::printProductionRule(35);}
-			| Exp MULT Exp	{output::printProductionRule(35);}
-			| ID 	{output::printProductionRule(36);}
-			| Call	{output::printProductionRule(37);}
-			| NUM	{$$.type = "int";}
-			| NUM B {$$.type = "byte";}
-			| STRING	{$$.type = "string";}
-			| TRUE		{$$.type = "bool";}
-			| FALSE		{$$.type = "bool";}
-			| NOT Exp	{output::printProductionRule(43);}
-			| Exp AND Exp	{output::printProductionRule(44);}
-			| Exp OR Exp	{output::printProductionRule(45);}
-			| Exp RELOP Exp	{output::printProductionRule(46);}
-			| LPAREN Type RPAREN Exp	{output::printProductionRule(47);}
+Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  #TYPES HAVE TO BE CAPITILIZED LIKE RULES GIVEN IN HW3 PDF
+			| Exp IF LPAREN Exp RPAREN ELSE Exp {
+													checkBoolean($4);
+													if (isNumeral($1) && isNumeral($7))
+													{
+														$$.type = largestType($1.type, $7.type);
+													}
+													else if ($1.type != $7.type)
+													{
+														output::errorMismatch(yylineno);
+													}
+													else
+													{
+														$$.type = $1.type;
+													}
+												}
+			| Exp ADD Exp 	{
+								checkNumeral($1);
+								checkNumeral($3);
+								$$.type = largestType($1.type, $3.type);
+							}
+			| Exp MULT Exp	{	
+								checkNumeral($1);
+								checkNumeral($3);
+								$$.type = largestType($1.type, $3.type);
+							}
+			| ID 	{
+						YYSTYPE* y = manager.get($1.name);
+						$$.type = y->type;
+
+					}
+			| Call	{$$.type = $1.type;}
+			| NUM	{$$.type = "INT";}
+			| NUM B {$$.type = "BYTE";}
+			| STRING	{$$.type = "STRING";}
+			| TRUE		{$$.type = "BOOL";}
+			| FALSE		{$$.type = "BOOL";}
+			| NOT Exp	{
+							checkBoolean($2);
+							$$.type = "BOOL";
+						}
+			| Exp AND Exp	{
+								checkBoolean($1);
+								checkBoolean($3);
+								$$.type == "BOOL";
+							}
+			| Exp OR Exp	{
+								checkBoolean($1);
+								checkBoolean($3);
+								$$.type == "BOOL";
+							}
+			| Exp RELOP Exp	{
+								checkNumeral($1);
+								checkNumeral($3);
+								$$.type == "BOOL";
+							}
+			| LPAREN Type RPAREN Exp	{
+											YYSTYPE y;
+											$$.value = $4.value;
+											$$.type = $2.type;
+											checkByteAndValue($$);
+										}
 ;
 
 %%
