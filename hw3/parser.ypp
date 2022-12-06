@@ -51,7 +51,7 @@ Program 	: Funcs		{output::printProductionRule(1);}
 Funcs		: /*epsilon*/		{output::printProductionRule(2);}
 			| FuncsDecl Funcs	{output::printProductionRule(3);}
 ;
-FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE 
+FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE    #some issues to solve scoping, legality of insertion, insertion of symbols in order
 			{ /* this marker is $7 */
 			    $$.params = $4.list;
 			    $$.ret_type = $1.type;
@@ -97,29 +97,29 @@ Statement 	: LBRACE {manager.newScope();} Statements RBRACE
 									}
 			| Call SC 				{output::printProductionRule(18);}
 			| RETURN SC				{/* check void ret type */
-										if (manager.tables_stack.back().ret_type != "void")
+										if (!manager.legalReturn("void"))
 										{
 											/* error return mismatch*/
 											output::errorMismatch(yylineno);
 										}
 									}
 			| RETURN Exp SC			{ /* check NOT void ret type */
-										if (manager.tables_stack.back().ret_type != $2.type || $2.type == "void")
+										if (!manager.legalReturn($2.type)
 										{
 											/* error return mismatch*/
 											output::errorMismatch(yylineno);
 										}
 									}
-			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {manager.popScope();} %prec IF
-			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {manager.popScope();} ELSE {manager.newScope("else");}Statement {manager.popScope();}
-			| WHILE LPAREN Exp RPAREN Statement {output::printProductionRule(23);}
+			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {output::endScope();manager.popScope();} %prec IF
+			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {output::endScope();manager.popScope();} ELSE {manager.newScope("else");}Statement {output::endScope();manager.popScope();}
+			| WHILE LPAREN Exp RPAREN {manager.newScope("while");} Statement {output::endScope();manager.popScope();}
 
 			| BREAK SC  	{ 
-								if (manager.tables_stack.back().scope_type != "while")
-									output::errorUnexpectedBreak(yylineno);
+								if (!manager.inScope("while"))
+								    output::errorUnexpectedBreak(yylineno);
 							}
 			| CONTINUE SC   {
-								if (manager.tables_stack.back().scope_type != "while")
+								if (!manager.inScope("while"))
 									output::errorUnexpectedContinue(yylineno);
 							}
 ;
@@ -140,7 +140,7 @@ Type 		: INT	{ $$.type = "int";}
 			| BYTE	{ $$.type = "byte";}
 			| BOOL	{ $$.type = "bool";}
 ;
-Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}
+Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}                  #TYPES HAVE TO BE CAPITILIZED LIKE RULES GIVEN IN HW3 PDF
 			| Exp IF LPAREN Exp RPAREN ELSE Exp {output::printProductionRule(34)}
 			| Exp ADD Exp 	{output::printProductionRule(35);}
 			| Exp MULT Exp	{output::printProductionRule(35);}

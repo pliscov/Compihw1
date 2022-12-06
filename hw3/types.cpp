@@ -1,6 +1,6 @@
 #include "types.hpp"
 #include <vector>
-
+#include "hw3_output.hpp"
 // YYSTYPE //
 
 // FUNC //
@@ -61,13 +61,14 @@ TableManager::TableManager(){
 */
 void TableManager::insert(YYSTYPE& var){
     tables_stack.back().push_back(var);
+
 }
 
 /*
 * this method is for inserting a new var with an offset to the top symbol table
 */
 void TableManager::insertID(YYSTYPE& id){
-    offset_stack.back() += 1;
+    id.offset = offset_stack.back()++;
     tables_stack.back().push_back(id);
 }
 
@@ -80,8 +81,12 @@ void TableManager::newScope(std::string scope_type){
 }
 
 void TableManager::popScope(){
-    tables_stack.pop_back();
     offset_stack.pop_back();
+    SymbolTable current_stack = tables_stack.pop_back();
+    for (std::iterator<YYSTYPE> i = current_stack.begin();i<= current_stack.end();i++)
+    {
+        output::printID(i.name,i.offset,i.type)
+    }
 }
 
 
@@ -94,14 +99,3 @@ YYSTYPE* TableManager::get(std::string symbol_name){
     }
     return NULL;
 }
-
-
-manager.newScope();
-int offset = -1;
-/* insert parameters into scope symbol table and into $$*/
-for (std::iterator<YYSTYPE> y = $4.ids.begin(); y < $4.ids.end(); y++)
-{
-manager.insertID(YYSTYPE(y.name, y.type, offset--));
-/* is this necessary ?? */ $$.types.push_back(y.type);
-}
-/* this also necessary ? */ $$.ret_type = $1.type;
