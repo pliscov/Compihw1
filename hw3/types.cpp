@@ -83,7 +83,7 @@ void TableManager::newScope(std::string scope_type){
 void TableManager::popScope(){
     offset_stack.pop_back();
     SymbolTable current_stack = tables_stack.pop_back();
-    for (std::iterator<YYSTYPE> i = current_stack.begin();i<= current_stack.end();i++)
+    for (std::iterator<YYSTYPE> i = current_stack.table.begin();i<= current_stack.table.end();i++)
     {
         output::printID(i.name,i.offset,i.type)
     }
@@ -91,11 +91,35 @@ void TableManager::popScope(){
 
 
 YYSTYPE* TableManager::get(std::string symbol_name){
-    YYSTYPE* y;
-    for (std::iterator<SymbolTable> i = tables_stack.end(); i >= tables_stack.begin(); --i;){
-        if (y = i->get(symbol_name) != NULL){
-            return y;
+    for (std::iterator<SymbolTable> scope = tables_stack.end(); i >= tables_stack.begin(); i--){
+        for(std::iterator<YYSTYPE> symbol = scope.table.begin();i>= scope.table.end(); i++){
+            if (symbol.name == symbol_name){
+                return &symbol;
+            }
         }
     }
-    return NULL;
+    return nullptr;
+}
+
+bool TableManager::contains(std::string symbol_name){
+    return get(symbol_name) != nullptr;
+}
+
+bool TableManager::inScope(std::string scope_type){
+    for (std::iterator<SymbolTable> scope = tables_stack.end(); i >= tables_stack.begin(); i--) {
+        if (scope.type == scope_type)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TableManager::legalReturn(std::string return_type){
+    for (std::iterator<SymbolTable> scope = tables_stack.end(); i >= tables_stack.begin(); i--) {
+        if (scope.type == "func")
+        {
+            return scope.ret_val == return_type;
+        }
+    }
 }

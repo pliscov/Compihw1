@@ -39,10 +39,8 @@ public:
 };
 
 class SymbolTable{
-    private:
-        std::vector<YYSTYPE> table;
-
     public:
+        std::vector<YYSTYPE> table;
         const std::string ret_val;
         const std::string scope_type;
         SymbolTable(std::string scope_type);
@@ -63,7 +61,7 @@ class TableManager{
         void insertID(YYSTYPE& var);
         void newScope(std::string scope_type);
         void popScope();
-        bool contains(std::string type);
+        bool contains(std::string symbol_name);
         bool inScope(std::string scope_type);
         bool legalReturn(std::string return_type);
         YYSTYPE* get(std::string symbol_name);
