@@ -21,7 +21,7 @@ class YYSTYPE {
 
 class Func: public YYSTYPE{
     public:
-        std::vector<std::string> types;
+        std::vector<YYSTYPE> params;
         std::string ret_type;
 
         Func(std::vector<std::string> types, std::string ret_type);
@@ -34,6 +34,11 @@ class FormalsList{
         std::vector<YYSTYPE> list;
 }
 
+class ExpList{
+public:
+    std::vector<YYSTYPE> list;
+}
+
 class SymbolTable{
     private:
         std::vector<YYSTYPE> table;
@@ -44,24 +49,10 @@ class SymbolTable{
         SymbolTable(std::string scope_type);
         SymbolTable(std::string scope_type, std::string ret_val);
         YYSTYPE* get(std::string symbol_name);
-        void push();
+        void push(YYSTYPE symbol);
 
 
 }
-
-// class TableStack{
-//     private:
-//         std::vector<SymbolTable> s;
-//         void Maketable();
-//     public:
-//         void insert(YYSTYPE symbol);
-//         void push(std::string scope_type);
-//         void pop();
-//         YYSTYPE get(std::string symbol_name);
-//         SymbolTable top();
-
-
-// }
 
 class TableManager{
     private:
@@ -75,8 +66,11 @@ class TableManager{
         void popScope();
         bool contains(std::string type);
         bool inScope(std::string scope_type);
-        //bool legalReturn(std::string return_type)     instead of this i put a ret_type on a scope as an optional field -alon
+        bool legalReturn(std::string return_type);
         YYSTYPE* get(std::string symbol_name);
 }
+
+
+
 
 

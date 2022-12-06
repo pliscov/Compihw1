@@ -53,16 +53,11 @@ Funcs		: /*epsilon*/		{output::printProductionRule(2);}
 ;
 FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE 
 			{ /* this marker is $7 */
-				manager.newScope();
-				int offset = -1;
-				/* insert parameters into scope symbol table and into $$*/
-				for (std::iterator<YYSTYPE> y = $4.ids.begin(); y < $4.ids.end(); y++)
-				{
-					manager.insertID(YYSTYPE(y.name, y.type, offset--));
-					/* is this necessary ?? */ $$.types.push_back(y.type);
-				}
-				/* this also necessary ? */ $$.ret_type = $1.type;
-
+			    $$.params = $4.list;
+			    $$.ret_type = $1.type;
+			    $$.name = $2.name;
+			    $$.type = "func";
+                manager.insert($$)
 			} Statements RBRACE 	
 {
 
@@ -115,8 +110,8 @@ Statement 	: LBRACE {manager.newScope();} Statements RBRACE
 											output::errorMismatch(yylineno);
 										}
 									}
-			| IF LPAREN Exp RPAREN Statement {output::printProductionRule(21);} %prec IF
-			| IF LPAREN Exp RPAREN Statement ELSE Statement {output::printProductionRule(22);}
+			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {manager.popScope();} %prec IF
+			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {manager.popScope();} ELSE {manager.newScope("else");}Statement {manager.popScope();}
 			| WHILE LPAREN Exp RPAREN Statement {output::printProductionRule(23);}
 
 			| BREAK SC  	{ 
@@ -164,7 +159,6 @@ Exp 		: LPAREN Exp RPAREN	{output::printProductionRule(33);}
 ;
 
 %%
-
 int main()
 {
 	return yyparse();
