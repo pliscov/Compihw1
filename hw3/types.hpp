@@ -26,17 +26,17 @@ class Func: public YYSTYPE{
         Func(std::vector<std::string> types, std::string ret_type);
         bool legalRet(std::string ret_type);
         bool legalParams(std::string param_list);
-}
+};
 
 class FormalsList{
     public:
         std::vector<YYSTYPE> list;
-}
+};
 
 class ExpList{
 public:
     std::vector<YYSTYPE> list;
-}
+};
 
 class SymbolTable{
     private:
@@ -51,7 +51,7 @@ class SymbolTable{
         void push(YYSTYPE symbol);
 
 
-}
+};
 
 class TableManager{
     private:
@@ -67,7 +67,7 @@ class TableManager{
         bool inScope(std::string scope_type);
         bool legalReturn(std::string return_type);
         YYSTYPE* get(std::string symbol_name);
-}
+};
 
 
 
