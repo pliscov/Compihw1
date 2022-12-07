@@ -41,12 +41,12 @@ public:
 class SymbolTable{
     public:
         std::vector<YYSTYPE> table;
-
-    public:
-        std::string ret_val;
+        std::string ret_type;
         std::string scope_type;
         SymbolTable(std::string scope_type);
         SymbolTable(std::string scope_type, std::string ret_val);
+        SymbolTable(SymbolTable& other);
+        SymbolTable& operator=(SymbolTable& other);
         YYSTYPE* get(std::string symbol_name);
         void push(YYSTYPE symbol);
 
