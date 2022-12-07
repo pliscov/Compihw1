@@ -115,7 +115,7 @@ void TableManager::popScope()
     tables_stack.pop_back();
     for (std::vector<YYSTYPE>::iterator i = current_stack.table.begin(); i <= current_stack.table.end(); i++)
     {
-        output::printID(i->name,i->offset,i->type)
+        output::printID(i->name,i->offset,i->type);
     }
 }
 
