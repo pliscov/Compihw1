@@ -1,9 +1,13 @@
 %{
 /* Declarations section */
 #include <stdio.h>
+#include <string>
+#include "types.hpp"
 #include "parser.tab.hpp"
-#include "output.hpp"
+#include "hw3_output.hpp"
+
 %}
+
 
 %option yylineno
 %option noyywrap
@@ -44,7 +48,7 @@ newline         [\r\n]|(\r\n)
 "if"                        return IF;
 "while"                     return WHILE;
 {relop}                     return RELOP;
-{id}                        return ID;
+{id}                        { yylval.id = yytext; return ID;};
 {num}                       return NUM;
 \/\/[^\r\n]*(\r|\n|\r\n)?   {}
 \"([^\n\r\"\\]|\\[rnt"\\])+\" return STRING;

@@ -4,20 +4,18 @@
 #include <cstdlib>
 #include "hw3_output.hpp"
 #include "types.hpp"
-
+#ifndef _UTILS_CPP
+#define _UTILS_CPP
 extern int yylineno;
 
-bool legalImplicitCast(std::string src_type, std::string dest_type)
-{
-    return (src_type == "INT" && dest_type == "BYTE");
-}
+
 
 bool isValidByte(std::string val)
 {
     return (stoi(val) <= 255 && stoi(val) >= 0);
 }
 
-void checkByteAndValue(YYSTYPE y)
+void checkByteAndValue(TYPEClass y)
 {   
     if (y.type == "BYTE" && !isValidByte(y.value))
     {
@@ -26,17 +24,25 @@ void checkByteAndValue(YYSTYPE y)
     }
 }
 
+bool legalImplicitCast(std::string src_type, std::string dest_type)
+{
+    return (src_type == "INT" && dest_type == "BYTE");
+}
+
 bool legalExplicitCast(std::string src_type, std::string dest_type)
 {
     return false;
 }
-
-bool isBoolean(YYSTYPE y)
+bool legalAssign(std::string src_type, std::string dest_type)
+{
+    return legalImplicitCast(src_type, dest_type) || (src_type == dest_type);
+}
+bool isBoolean(TYPEClass y)
 {
     return y.type == "BOOL";
 }
 
-void checkBoolean(YYSTYPE y)
+void checkBoolean(TYPEClass y)
 {
     if (!isBoolean(y))
     {
@@ -45,12 +51,12 @@ void checkBoolean(YYSTYPE y)
     }
 }
 
-bool isNumeral(YYSTYPE y)
+bool isNumeral(TYPEClass y)
 {
     return (y.type == "BYTE" || y.type == "INT");
 }
 
-void checkNumeral(YYSTYPE y)
+void checkNumeral(TYPEClass y)
 {
     if (y.type != "BYTE" && y.type != "INT")
     {
@@ -63,3 +69,5 @@ std::string largestType(std::string type1, std::string type2)
 {
     return (type1 == "INT" || type2 == "INT") ? "INT" : "BYTE";
 }
+
+#endif //_UTILS_CPP

@@ -1,9 +1,12 @@
 %{
 	#include <iostream>
 	#include <cstdlib>
+	#include <memory>
+
 	#include "hw3_output.hpp"
 	#include "types.hpp"
-	#include "utils.cpp"
+	#include "utils.hpp"
+
 	TableManager manager;
 	extern int yylex();
 	extern int yylineno;
@@ -31,12 +34,14 @@
 %token COMMA
 %token ASSIGN
 %token RELOP
-%token ID
+%token <id> ID
 %token NUM
 %token STRING
+%type <funcid> FuncID;
 %type <FormalsList> Formals FormalsList
 %type <ExpList> ExpList
 %type <Func> FuncsDecl
+%type <TYPE> Exp Type Call FormalDecl RetType
 
 %left OR
 %left AND
@@ -48,100 +53,188 @@
 
 %%
 
-Program 	: Funcs		{output::printProductionRule(1);}
+Program 	: Funcs		{output::endScope();manager.popScope();}
 ;
-Funcs		: /*epsilon*/		{output::printProductionRule(2);}
-			| FuncsDecl Funcs	{output::printProductionRule(3);}
+Funcs		: /*epsilon*/		{}
+			| FuncsDecl Funcs	{}
 ;
-FuncsDecl 	: RetType ID LPAREN Formals RPAREN LBRACE    #some issues to solve scoping, legality of insertion, insertion of symbols in order
+FuncsDecl 	: RetType FuncID LPAREN Formals RPAREN    /*some issues to solve scoping, legality of insertion, insertion of symbols in order*/
 			{ /* this marker is $7 */
-			    $$.params = $4.list;
-			    $$.ret_type = $1.type;
-			    $$.name = $2.name;
-			    $$.type = "func";
-                manager.insert($$)
-			} Statements RBRACE 	
+				
+				FuncClass* func = new FuncClass();
+				func->name = $2;
+			    func->type = "func";
+				func->params = $4.list;
+				func->ret_type = $1.type;
+                manager.insert(func);
+				manager.newScope("func", func->ret_type);
+				manager.insertParams($4.list);
+			} LBRACE Statements RBRACE 	
 {
+	FuncClass *func = dynamic_cast<FuncClass*>(manager.get($2));
+	if (func == nullptr)
+	{
+		printf("bad pointer");
+		exit(1);
+	}
 
-	output::endScope();manager.popScope();
+	output::endScope();
+	manager.popScope();
 
 }
 ;
 RetType 	: Type	{$$.type = $$.name = $1.type;}
-			| VOID  {$$.type = "void"}
+			| VOID  {$$.type = "VOID";}
 ;
 Formals 	: /*epsilon*/ {}
-			| FormalsList {$$.list = $1.list;}
+			| FormalsList 	{
+								$$.list = $1.list;
+
+							}
 ;
-FormalsList : FormalDecl {$$.list.push_back(YYSTYPE($1));}
-			| FormalDecl COMMA FormalsList { $$.list.push_back($1); $$.list += $3.list;}
+FormalsList : FormalDecl {$$.list.push_back(TYPEClass($1));}
+			| FormalDecl COMMA FormalsList { $$.list.push_back($1); $$.list.insert( $$.list.end(), $3.list.begin(), $3.list.end() );}
 ;
-FormalDecl 	: Type ID {if(manager.contains($2.name)){output::errorDef();}$$.type = $1.type; $$.name = $2.name;}
+FormalDecl 	: Type ID 	{
+							if(manager.contains(yylval.id))
+							{
+								output::errorDef(yylineno, yylval.id);
+							}
+							$$.type = $1.type;
+							$$.name = yylval.id;
+						}
 ;
+NEWSCOPE : {manager.newScope("if");};
+ENDSCOPE : {output::endScope();manager.popScope();}
 Statements 	: Statement
 		   	| Statements Statement
 ;
-Statement 	: LBRACE {manager.newScope();} Statements RBRACE {output::endScope();manager.popScope();}
+Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::endScope();manager.popScope();}
 
-			| Type ID SC 			{ /* insert new symbol */
-										if (manager.contains($2.name))
-											output::errorDef(yylineno, $2.name);
+			| Type ID SC 			{ 
+										/* insert new symbol */
+										if (manager.contains(yylval.id))
+										{
+											output::errorDef(yylineno, yylval.id);
+											exit(1);
+										}
 										else
-											manager.insertID(YYSTYPE($2.name, $1.type));
+										{
+											TYPEClass* y = new TYPEClass(yylval.id, $1.type);
+											manager.insertID(y);
+										}
 									}
-			| Type ID ASSIGN Exp SC { /* insert a symbol, maybe cast */
-										if (!($1.type == $4.type))
-											output::errorMismatch(yylineno);
-										/*todo*/
-									}
-			| ID ASSIGN Exp SC  	{ /* maybe cast */
-										YYSTYPE& y = *(manager.get($1.name));
-										
-										if (!legalImplicitCast(y.type, $3.type) || (y.type == $3.type))
+			| Type ID ASSIGN {$2 = std::string(yylval.id);} Exp SC { 
+										/* insert a symbol, maybe cast */
+										if (manager.contains($2))
+										{
+											output::errorDef(yylineno, yylval.id);
+											exit(1);
+										}
+										if (!legalAssign($1.type, $5.type))
 										{
 											output::errorMismatch(yylineno);
+											exit(1);
+										}
+										else
+										{
+											TYPEClass* y = new TYPEClass($2, $1.type);
+											manager.insertID(y);
 										}
 										
+										/*todo*/
+									}
+			| ID ASSIGN Exp SC  	{ 
+										/* maybe cast */
+										TYPEClass* y = manager.get(yylval.id);
+										if (y == nullptr)
+										{
+											output::errorUndef(yylineno, yylval.id);
+											exit(1);
+										}
+										if (!legalAssign(y->type, $3.type))
+										{
+											output::errorMismatch(yylineno);
+											exit(1);
+										}
+									}
+			| Call SC				{									
 									}
 			| RETURN Exp SC			{ /* check NOT void ret type */
-										if (!manager.legalReturn($2.type)
+										if (!manager.legalReturn($2.type))
 										{
 											/* error return mismatch*/
 											output::errorMismatch(yylineno);
+											exit(1);
 										}
 									}
-			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {output::endScope();manager.popScope();} %prec IF
-			| IF LPAREN Exp RPAREN {manager.newScope("if");} Statement {output::endScope();manager.popScope();} ELSE {manager.newScope("else");}Statement {output::endScope();manager.popScope();}
+			| IF LPAREN Exp RPAREN NEWSCOPE Statement ENDSCOPE %prec IF
+			| IF LPAREN Exp RPAREN NEWSCOPE Statement ENDSCOPE ELSE {manager.newScope("else");}Statement {output::endScope();manager.popScope();}
 			| WHILE LPAREN Exp RPAREN {manager.newScope("while");} Statement {output::endScope();manager.popScope();}
 
 			| BREAK SC  	{ 
 								if (!manager.inScope("while"))
+								{
 								    output::errorUnexpectedBreak(yylineno);
+									exit(1);
+								}
 							}
 			| CONTINUE SC   {
 								if (!manager.inScope("while"))
+								{
 									output::errorUnexpectedContinue(yylineno);
+									exit(1);
+								}
 							}
 ;
-Call 		: ID LPAREN ExpList RPAREN		{
-												Func& func = dynamic_cast<Func> *(manager.get($1.name));
-												if (!func.legalParams($3)){
-													output::errorPrototypeMismatch();
-													
+Call 		: FuncID LPAREN 	{
+												FuncClass* func = (FuncClass*)(manager.get($1));
+											
+												if (func == nullptr)
+												{
+													output::errorUndef(yylineno, $1);
+													exit(1);
 												}
-												$$.type = func.ret_type;
+								}   ExpList RPAREN	{
+												FuncClass* func = (FuncClass*)(manager.get($1));
+											
+												if (func == nullptr)
+												{
+													output::errorUndef(yylineno, $1);
+													exit(1);
+												}
+												if (!func->legalParams($4.list)){
+													std::vector<std::string> types;
+													for (TYPEClass y: func->params)
+													{
+														types.push_back(y.type);
+													}
+													
+													output::errorPrototypeMismatch(yylineno, func->name, types);
+													exit(1);
+												}
+												$$.type = func->ret_type;
 												
+								}
+	 		| FuncID LPAREN RPAREN				{
+												FuncClass* func = (FuncClass*)(manager.get(yylval.id));
+												if (func == nullptr)
+												{
+													output::errorUndef(yylineno, yylval.id);
+													exit(1);
+												}
+												$$.type = func->ret_type;
 											}
-	 		| ID LPAREN RPAREN				{}
 ;
-ExpList 	: Exp	{$$.list.push_back($1)}
-			| Exp COMMA ExpList		{$$.list.push_back($1);$$list += $3.list;}
+FuncID 		: ID {$$ = yylval.id;};
+ExpList 	: Exp	{ $$.list.push_back($1);}
+			| Exp COMMA ExpList		{$$.list.push_back($1); $$.list.insert( $$.list.end(), $3.list.begin(), $3.list.end() );}
 ;
 Type 		: INT	{ $$.type = "INT";}
 			| BYTE	{ $$.type = "BYTE";}
 			| BOOL	{ $$.type = "BOOL";}
 ;
-Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  #TYPES HAVE TO BE CAPITILIZED LIKE RULES GIVEN IN HW3 PDF
+Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  /*TYPES HAVE TO BE CAPITILIZED LIKE RULES GIVEN IN HW3 PDF*/
 			| Exp IF LPAREN Exp RPAREN ELSE Exp {
 													checkBoolean($4);
 													if (isNumeral($1) && isNumeral($7))
@@ -151,57 +244,62 @@ Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  #TYPES HAVE TO B
 													else if ($1.type != $7.type)
 													{
 														output::errorMismatch(yylineno);
+														exit(1);
 													}
 													else
 													{
 														$$.type = $1.type;
 													}
 												}
-			| Exp ADD Exp 	{
-								checkNumeral($1);
-								checkNumeral($3);
-								$$.type = largestType($1.type, $3.type);
-							}
-			| Exp MULT Exp	{	
-								checkNumeral($1);
-								checkNumeral($3);
-								$$.type = largestType($1.type, $3.type);
-							}
-			| ID 	{
-						YYSTYPE* y = manager.get($1.name);
-						$$.type = y->type;
+			| Exp ADD Exp 				{
+											checkNumeral($1);
+											checkNumeral($3);
+											$$.type = largestType($1.type, $3.type);
+										}
+			| Exp MULT Exp				{	
+											checkNumeral($1);
+											checkNumeral($3);
+											$$.type = largestType($1.type, $3.type);
+										}
+			| ID 						{
+											TYPEClass* y = manager.get(yylval.id);
+											if (y == nullptr)
+											{
+												output::errorUndef(yylineno, yylval.id);
+												exit(1);
+											}
+											$$.type = y->type;
 
-					}
-			| Call	{$$.type = $1.type;}
-			| NUM	{$$.type = "INT";}
-			| NUM B {$$.type = "BYTE";}
-			| STRING	{$$.type = "STRING";}
-			| TRUE		{$$.type = "BOOL";}
-			| FALSE		{$$.type = "BOOL";}
-			| NOT Exp	{
-							checkBoolean($2);
-							$$.type = "BOOL";
-						}
-			| Exp AND Exp	{
-								checkBoolean($1);
-								checkBoolean($3);
-								$$.type == "BOOL";
-							}
-			| Exp OR Exp	{
-								checkBoolean($1);
-								checkBoolean($3);
-								$$.type == "BOOL";
-							}
-			| Exp RELOP Exp	{
-								checkNumeral($1);
-								checkNumeral($3);
-								$$.type == "BOOL";
-							}
+										}
+			| Call						{$$.type = $1.type;}
+			| NUM						{$$.type = "INT";}
+			| NUM B 					{$$.type = "BYTE";}
+			| STRING					{$$.type = "STRING";}
+			| TRUE						{$$.type = "BOOL";}
+			| FALSE						{$$.type = "BOOL";}
+			| NOT Exp					{
+											checkBoolean($2);
+											$$.type = "BOOL";
+										}
+			| Exp AND Exp				{
+											checkBoolean($1);
+											checkBoolean($3);
+											$$.type = std::string("BOOL");
+										}
+			| Exp OR Exp				{
+											checkBoolean($1);
+											checkBoolean($3);
+											$$.type = std::string("BOOL");
+										}
+			| Exp RELOP Exp				{
+											checkNumeral($1);
+											checkNumeral($3);
+											$$.type = std::string("BOOL");
+										}
 			| LPAREN Type RPAREN Exp	{
-											YYSTYPE y;
-											$$.value = $4.value;
-											$$.type = $2.type;
-											checkByteAndValue($$);
+											checkNumeral($4);
+											checkNumeral($2);
+											$$.type = std::string($2.type);
 										}
 ;
 
