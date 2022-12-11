@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include "hw3_output.hpp"
 #include "types.hpp"
 #ifndef _UTILS_CPP
@@ -10,16 +12,16 @@ extern int yylineno;
 
 
 
-bool isValidByte(std::string val)
+bool isValidByte(int val)
 {
-    return (stoi(val) <= 255 && stoi(val) >= 0);
+    return val <= 255 && val >= 0;
 }
 
-void checkByteAndValue(TYPEClass y)
+void checkByte(int val)
 {   
-    if (y.type == "BYTE" && !isValidByte(y.value))
+    if (!isValidByte(val))
     {
-        output::errorByteTooLarge(yylineno, y.value);
+        output::errorByteTooLarge(yylineno, std::to_string(val));
         exit(1);
     }
 }

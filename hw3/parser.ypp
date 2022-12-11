@@ -284,7 +284,7 @@ Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  /*TYPES HAVE TO 
 										}
 			| Call						{$$.type = $1.type;}
 			| NUM						{$$.type = "INT";}
-			| NUM B 					{$$.type = "BYTE";}
+			| NUM B 					{$$.type = "BYTE"; checkByte(yylval.byte);}
 			| STRING					{$$.type = "STRING";}
 			| TRUE						{$$.type = "BOOL";}
 			| FALSE						{$$.type = "BOOL";}

@@ -46,6 +46,7 @@ public:
 typedef class
 {
     public:
+	int byte;
         std::string id;
         std::string funcid;
         TYPEClass TYPE;

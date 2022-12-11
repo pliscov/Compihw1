@@ -10,7 +10,7 @@
 #include "types.hpp"
 
 bool isValidByte(std::string val);
-void checkByteAndValue(TYPEClass y);
+void checkByte(int val);
 bool legalImplicitCast(std::string src_type, std::string dest_type);
 bool legalExplicitCast(std::string src_type, std::string dest_type);
 bool legalAssign(std::string src_type, std::string dest_type);

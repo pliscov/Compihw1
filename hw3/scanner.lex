@@ -49,7 +49,7 @@ newline         [\r\n]|(\r\n)
 "while"                     return WHILE;
 {relop}                     return RELOP;
 {id}                        { yylval.id = yytext; return ID;};
-{num}                       return NUM;
+{num}                       {yylval.byte = atoi(yytext);return NUM;};
 \/\/[^\r\n]*(\r|\n|\r\n)?   {}
 \"([^\n\r\"\\]|\\[rnt"\\])+\" return STRING;
 {whitespace}                {}
