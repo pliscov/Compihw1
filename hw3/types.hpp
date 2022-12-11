@@ -81,6 +81,7 @@ class TableManager{
         void newScope(std::string scope_type);
         void newScope(std::string scope_type, std::string ret_type);
         void popScope();
+        void checkMain();
         bool contains(std::string symbol_name);
         bool inScope(std::string scope_type);
         bool legalReturn(std::string return_type);

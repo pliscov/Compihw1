@@ -53,7 +53,7 @@
 
 %%
 
-Program 	: Funcs		{output::endScope();manager.popScope();}
+Program 	: Funcs		{manager.checkMain();output::endScope();manager.popScope();}
 ;
 Funcs		: /*epsilon*/		{}
 			| FuncsDecl Funcs	{}
@@ -160,6 +160,16 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 										}
 									}
 			| Call SC				{									
+									}
+			| RETURN SC				{	
+										/* check void ret type */
+										if (!manager.legalReturn("VOID"))
+										{
+											/* error return mismatch*/
+											output::errorMismatch(yylineno);
+											exit(1);
+										}
+
 									}
 			| RETURN Exp SC			{ /* check NOT void ret type */
 										if (!manager.legalReturn($2.type))
