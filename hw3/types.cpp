@@ -22,13 +22,15 @@ bool FuncClass::legalRet(std::string ret_type)
     return this->ret_type == ret_type;
 }
 
-bool FuncClass::legalParams(std::vector<TYPEClass> param_list)
+bool FuncClass::legalParams(std::vector<TYPEClass> arg_list)
 {
-    if (this->params.size() != param_list.size())
+    if (this->params.size() != arg_list.size())
         return false;
     for (int i = 0; i < params.size(); i++)
-        if (!legalAssign(param_list[i].type,params[i].type))
+        if (!legalAssign(arg_list[i].type,params[i].type))
+        {
             return false;
+        }
     return true;
 }
 

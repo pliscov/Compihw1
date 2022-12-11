@@ -63,7 +63,7 @@ FuncsDecl 	: RetType FuncID LPAREN Formals RPAREN    /*some issues to solve scop
 				
 				FuncClass* func = new FuncClass();
 				func->name = $2;
-			    func->type = "func";
+			    func->type = $1.type;
 				func->params = $4.list;
 				func->ret_type = $1.type;
                 manager.insert(func);
@@ -131,7 +131,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 											output::errorDef(yylineno, yylval.id);
 											exit(1);
 										}
-										if (!legalAssign($1.type, $5.type))
+										if (!legalAssign($5.type, $1.type))
 										{
 											output::errorMismatch(yylineno);
 											exit(1);
@@ -152,8 +152,9 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 											output::errorUndef(yylineno, yylval.id);
 											exit(1);
 										}
-										if (!legalAssign(y->type, $3.type))
+										if (!legalAssign($3.type, y->type))
 										{
+											cout << "$3.type = " << $3.type << " ,  y->type =  " <<  y->type << endl;
 											output::errorMismatch(yylineno);
 											exit(1);
 										}

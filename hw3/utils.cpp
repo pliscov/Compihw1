@@ -26,7 +26,7 @@ void checkByteAndValue(TYPEClass y)
 
 bool legalImplicitCast(std::string src_type, std::string dest_type)
 {
-    return (src_type == "INT" && dest_type == "BYTE");
+    return (src_type == "BYTE" && dest_type == "INT");
 }
 
 bool legalExplicitCast(std::string src_type, std::string dest_type)
