@@ -8,6 +8,7 @@
 	#include "utils.hpp"
 
 	TableManager manager;
+	bool inPrintArgs = false;
 	extern int yylex();
 	extern int yylineno;
 	extern int yyleng;
@@ -60,7 +61,11 @@ Funcs		: /*epsilon*/		{}
 ;
 FuncsDecl 	: RetType FuncID LPAREN Formals RPAREN    /*some issues to solve scoping, legality of insertion, insertion of symbols in order*/
 			{ /* this marker is $7 */
-				
+				if (manager.get($2) != nullptr)
+				{
+					output::errorDef(yylineno, $2);
+					exit(1);
+				}
 				FuncClass* func = new FuncClass();
 				func->name = $2;
 			    func->type = $1.type;
@@ -106,6 +111,7 @@ FormalDecl 	: Type ID 	{
 ;
 NEWSCOPE : {manager.newScope("if");};
 ENDSCOPE : {output::endScope();manager.popScope();}
+BoolExp : Exp {checkBoolean($1);}
 Statements 	: Statement
 		   	| Statements Statement
 ;
@@ -124,7 +130,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 											manager.insertID(y);
 										}
 									}
-			| Type ID ASSIGN {$2 = std::string(yylval.id);} Exp SC { 
+			| Type ID ASSIGN 	{ $2 = std::string(yylval.id);} Exp SC { 
 										/* insert a symbol, maybe cast */
 										if (manager.contains($2))
 										{
@@ -154,7 +160,6 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 										}
 										if (!legalAssign($3.type, y->type))
 										{
-											cout << "$3.type = " << $3.type << " ,  y->type =  " <<  y->type << endl;
 											output::errorMismatch(yylineno);
 											exit(1);
 										}
@@ -172,17 +177,18 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 
 									}
 			| RETURN Exp SC			{ /* check NOT void ret type */
-										if (!manager.legalReturn($2.type))
+
+										
+										if (!manager.legalReturn($2.type) || $2.type == "VOID")
 										{
 											/* error return mismatch*/
 											output::errorMismatch(yylineno);
 											exit(1);
 										}
 									}
-			| IF LPAREN Exp RPAREN NEWSCOPE Statement ENDSCOPE %prec IF
-			| IF LPAREN Exp RPAREN NEWSCOPE Statement ENDSCOPE ELSE {manager.newScope("else");}Statement {output::endScope();manager.popScope();}
-			| WHILE LPAREN Exp RPAREN {manager.newScope("while");} Statement {output::endScope();manager.popScope();}
-
+			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE %prec IF
+			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE ELSE {manager.newScope("else");}Statement {output::endScope();manager.popScope();}
+			| WHILE LPAREN BoolExp RPAREN {manager.newScope("while");} Statement {output::endScope();manager.popScope();}
 			| BREAK SC  	{ 
 								if (!manager.inScope("while"))
 								{
@@ -211,7 +217,7 @@ Call 		: FuncID LPAREN 	{
 											
 												if (func == nullptr)
 												{
-													output::errorUndef(yylineno, $1);
+													output::errorUndefFunc(yylineno, $1);
 													exit(1);
 												}
 												if (!func->legalParams($4.list)){
@@ -228,10 +234,10 @@ Call 		: FuncID LPAREN 	{
 												
 								}
 	 		| FuncID LPAREN RPAREN				{
-												FuncClass* func = (FuncClass*)(manager.get(yylval.id));
+												FuncClass* func = (FuncClass*)(manager.get($1));
 												if (func == nullptr)
 												{
-													output::errorUndef(yylineno, yylval.id);
+													output::errorUndefFunc(yylineno, $1);
 													exit(1);
 												}
 												$$.type = func->ret_type;

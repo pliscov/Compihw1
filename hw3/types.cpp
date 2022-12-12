@@ -139,15 +139,12 @@ void TableManager::checkMain()
 {
     bool found_valid_main = false;
     SymbolTable current_stack = tables_stack.back();
-    // cout << "STARTED CHECKMAIN\n"; 
     for (std::vector<TYPEClass*>::iterator ip = current_stack.table.begin(); ip < current_stack.table.end(); ip++)
     {
         TYPEClass* i = *ip;
         FuncClass* func = dynamic_cast<FuncClass*>(*ip);
         if (func != nullptr)
         {
-            // cout << "iteration :" << (int)(ip - current_stack.table.begin()) << " , func->name = " << func->name << ", func->type = " << func->type << ", func->ret_type = " << func->ret_type << ", func->params.size() = " << 
-            // func->params.size() << endl;
             if (func->name == "main" && (func->params.size() == 0 && func->type == "VOID"))
                 found_valid_main = true;
         }
@@ -221,7 +218,7 @@ bool TableManager::legalReturn(std::string return_type)
     {
         if (scope->scope_type == "func")
         {
-            return scope->ret_type == return_type;
+            return legalAssign(return_type, scope->ret_type);
         }
     }
     return false;
