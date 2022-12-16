@@ -2,6 +2,9 @@
 #include <vector>
 #include "hw3_output.hpp"
 #include "utils.hpp"
+
+extern int yylineno;
+
 // TYPEClass //
 TYPEClass::TYPEClass(const TYPEClass& other)
 {
@@ -27,10 +30,12 @@ bool FuncClass::legalParams(std::vector<TYPEClass> arg_list)
     if (this->params.size() != arg_list.size())
         return false;
     for (int i = 0; i < params.size(); i++)
+    {
         if (!legalAssign(arg_list[i].type,params[i].type))
         {
             return false;
         }
+    }
     return true;
 }
 
@@ -96,6 +101,11 @@ void TableManager::insertParams(std::vector<TYPEClass> params)
     int offset = -1;
     for (std::vector<TYPEClass>::iterator y = params.begin(); y < params.end(); y++)
     {
+        if (contains(y->name))
+        {
+            output::errorDef(yylineno, y->name);
+            exit(1);
+        }
         (*y).offset = offset--;
         tables_stack.back().table.push_back(new TYPEClass(*y));
     }

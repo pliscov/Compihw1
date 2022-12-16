@@ -54,13 +54,13 @@
 
 %%
 
-Program 	: Funcs		{manager.checkMain();output::endScope();manager.popScope();}
+Program 	: Funcs		{}
 ;
 Funcs		: /*epsilon*/		{}
 			| FuncsDecl Funcs	{}
 ;
-FuncsDecl 	: RetType FuncID LPAREN Formals RPAREN    /*some issues to solve scoping, legality of insertion, insertion of symbols in order*/
-			{ /* this marker is $7 */
+FuncsDecl 	: RetType FuncID LPAREN Formals
+			{
 				if (manager.get($2) != nullptr)
 				{
 					output::errorDef(yylineno, $2);
@@ -71,10 +71,16 @@ FuncsDecl 	: RetType FuncID LPAREN Formals RPAREN    /*some issues to solve scop
 			    func->type = $1.type;
 				func->params = $4.list;
 				func->ret_type = $1.type;
+				if (manager.contains($2))
+				{
+					output::errorDef(yylineno, $2);
+					exit(1);
+				}
                 manager.insert(func);
 				manager.newScope("func", func->ret_type);
 				manager.insertParams($4.list);
-			} LBRACE Statements RBRACE 	
+
+			} RPAREN LBRACE Statements RBRACE 	
 {
 	FuncClass *func = dynamic_cast<FuncClass*>(manager.get($2));
 	if (func == nullptr)
@@ -104,6 +110,7 @@ FormalDecl 	: Type ID 	{
 							if(manager.contains(yylval.id))
 							{
 								output::errorDef(yylineno, yylval.id);
+								exit(1);
 							}
 							$$.type = $1.type;
 							$$.name = yylval.id;
@@ -150,15 +157,23 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 										
 										/*todo*/
 									}
-			| ID ASSIGN Exp SC  	{ 
+			| ID {$1 = yylval.id;} ASSIGN Exp SC  	{ 
 										/* maybe cast */
-										TYPEClass* y = manager.get(yylval.id);
+										TYPEClass* y = manager.get($1);
+
 										if (y == nullptr)
 										{
-											output::errorUndef(yylineno, yylval.id);
+											output::errorUndef(yylineno, $1);
 											exit(1);
 										}
-										if (!legalAssign($3.type, y->type))
+
+										FuncClass* func_y = dynamic_cast<FuncClass*>(y);
+										if (func_y != nullptr)
+										{
+											output::errorUndef(yylineno, func_y->name);
+											exit(1);
+										}
+										if (!legalAssign($4.type, y->type))
 										{
 											output::errorMismatch(yylineno);
 											exit(1);
@@ -205,7 +220,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {output::en
 							}
 ;
 Call 		: FuncID LPAREN 	{
-												FuncClass* func = (FuncClass*)(manager.get($1));
+												FuncClass* func = dynamic_cast<FuncClass*>(manager.get($1));
 											
 												if (func == nullptr)
 												{
@@ -213,7 +228,7 @@ Call 		: FuncID LPAREN 	{
 													exit(1);
 												}
 								}   ExpList RPAREN	{
-												FuncClass* func = (FuncClass*)(manager.get($1));
+												FuncClass* func = dynamic_cast<FuncClass*>(manager.get($1));
 											
 												if (func == nullptr)
 												{
@@ -234,10 +249,21 @@ Call 		: FuncID LPAREN 	{
 												
 								}
 	 		| FuncID LPAREN RPAREN				{
-												FuncClass* func = (FuncClass*)(manager.get($1));
+												FuncClass* func = dynamic_cast<FuncClass*>(manager.get($1));
 												if (func == nullptr)
 												{
 													output::errorUndefFunc(yylineno, $1);
+													exit(1);
+												}
+												if (!func->params.empty())
+												{
+													std::vector<std::string> types;
+													for (TYPEClass y: func->params)
+													{
+														types.push_back(y.type);
+													}
+													
+													output::errorPrototypeMismatch(yylineno, func->name, types);
 													exit(1);
 												}
 												$$.type = func->ret_type;
@@ -285,6 +311,11 @@ Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  /*TYPES HAVE TO 
 												output::errorUndef(yylineno, yylval.id);
 												exit(1);
 											}
+											if (dynamic_cast<FuncClass*>(y) != nullptr)
+											{
+												output::errorUndef(yylineno, yylval.id);
+												exit(1);
+											}
 											$$.type = y->type;
 
 										}
@@ -323,7 +354,11 @@ Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  /*TYPES HAVE TO 
 %%
 int main()
 {
-	return yyparse();
+	int res = yyparse();
+	manager.checkMain();
+	output::endScope();
+	manager.popScope();
+	return res;
 }
 
 int yyerror(const char * message)

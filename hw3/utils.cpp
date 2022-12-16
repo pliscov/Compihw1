@@ -60,7 +60,7 @@ bool isNumeral(TYPEClass y)
 
 void checkNumeral(TYPEClass y)
 {
-    if (y.type != "BYTE" && y.type != "INT")
+    if (!isNumeral(y))
     {
         output::errorMismatch(yylineno);
         exit(1);
