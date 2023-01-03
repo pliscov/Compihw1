@@ -1,0 +1,154 @@
+%{
+	#include <iostream>
+	#include <cstdlib>
+	#include <memory>
+
+	extern int yylex();
+	extern int yylineno;
+	extern int yyleng;
+	extern char* yytext;
+	int yyerror(const char * message);
+%}
+
+%token SWITCH
+%token E
+%token BREAK
+%token B
+%token SC
+%token IS
+%token COLON
+
+
+%%
+
+S   : SWITCH ( E N ) CL
+    {
+        /*   stack.top() is like stack.pop() without removing the element     */
+        backpatch(N.nextlist, CL.guard_quad_stack.top());
+        while (!CL.guard_quad_stack.empty())
+        {
+            bool_expr = CL.bool_expr_stack.pop();
+            guard_quad = CL.guard_quad_stack.pop();
+            case_quad = CL.case_quad_stack.pop();
+            true_list = CL.true_list_stack.pop();
+            false_list = CL.false_list_stack.pop();
+            condition_goto = CL.condition_list_stack.pop();
+            useE = CL.useE_stack.pop();
+            next_guard_quad = CL.guard_quad_stack.top();
+            if (useE)
+            {
+                backpatch(condition_goto, next_quad());
+                emit('if ' || bool_expr || E.place || ' goto ' || case_quad);
+                if (next_guard_quad == NULL)
+                {
+                    S.next_list = merge(CL.next_list, makelist(nextquad()));
+                    emit('goto __');
+                }
+                else
+                    emit('goto ' || next_guard_quad);
+            }
+            else /* not useE */
+            {
+                backpatch(true_list, case_quad);
+                if (next_guard_quad == NULL)
+                    S.next_list = merge(CL.next_list, false_list)
+                else
+                    backpatch(false_list, next_guard_quad);
+            }
+        }
+    };
+CL  : C CL1  
+    {
+        CL.next_list = merge(CL1.next_list, C.next_list);
+        CL.count = CL1.count + 1;
+        CL.condition_list_stack = CL1.condition_list_stack;
+        CL.condition_list_stack.push(C.condition_list);
+        CL.true_list_stack = CL1.true_list_stack;
+        push(CL.true_list_stack, C.true_list);
+        CL.false_list_stack = CL1.false_list_stack;
+        push(CL.false_list_stack, C.false_list);
+        CL.bool_expr_stack = CL1.bool_expr_stack;
+        push(CL.bool_expr_stack, C.bool_expr);
+        CL.useE_stack = CL1.useE_stack;
+        push(CL.useE_stack, C.useE);
+        CL.guard_quad_stack = CL1.guard_quad_stack;
+        push(CL.guard_quad_stack, C.guard_quad);
+        CL.case_quad_stack = CL1.case_quad_stack;
+        push(CL.case_quad_stack, C.case_quad);
+    }
+
+    
+    | C     
+    {
+        CL.next_list = C.next_list;
+
+        CL.count = 1;
+
+        CL.condition_list_stack = newStack();
+        CL.condition_list_stack.push(C.condition_list);
+        
+        CL.true_list_stack = newStack();
+        push(CL.true_list_stack, C.true_list)
+
+        CL.false_list_stack = newStack();
+        push(CL.false_list_stack, C.false_list);
+
+        CL.bool_expr_stack = newStack();
+        push(CL.bool_expr_stack, C.bool_expr);
+
+        CL.useE_stack = newStack();
+        push(CL.useE_stack, C.useE);
+
+        CL.guard_quad_stack = newStack();
+        push(CL.guard_quad_stack, C.guard_quad);
+
+        CL.case_quad_stack = newStack();
+        push(CL.case_quad_stack, C.case_quad);
+    }
+;
+C   : CASE M1 G COLON M2 S BREAK SC 
+    {
+        C.guard_quad = M1.quad;
+        C.case_quad = M2.quad;
+        C.bool_expr = G.bool_expr;
+        C.condition_list = G.condition_list;
+        C.true_list = G.true_list;
+        C.false_list = G.false_list;
+        C.useE = G.useE;
+        C.next_list = S.next_list;
+
+    }
+;
+
+G   : IS E N
+    {
+        G.bool_expr = 'if ' || E.place || ' == ';
+        G.condition_list = N.next_list;
+        G.true_list = NULL;
+        G.false_list = NULL;
+        G.useE = true;
+    }
+    | B 
+    {
+        G.true_list = B.true_list;
+        G.false_list = B.false_list;
+        G.bool_expr = NULL;
+        G.condition_list = NULL;
+        G.useE = false;
+    }
+;
+
+
+
+%%
+int main()
+{
+	int res = yyparse();
+	return res;
+}
+
+int yyerror(const char * message)
+{
+	output::errorSyn(yylineno);
+	exit(1);
+}
