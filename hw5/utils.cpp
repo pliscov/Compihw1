@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "hw3_output.hpp"
 #include "types.hpp"
+#include <map>
 #ifndef _UTILS_CPP
 #define _UTILS_CPP
 extern int yylineno;
@@ -94,4 +95,27 @@ std::string initialize(std::string type){
     return (type != "BOOL") ? std::string("0") : std::string("false");
 }
 
+std::string processRelop(std::string relop){ //this could be WRONG
+    if (relop == "==")
+        return "eq";
+    else if (relop == "!=")
+        return "ne";
+    else if (relop == ">")
+        return "sgt";
+    else if (relop == ">=")
+        return "sge";
+    else if (relop == "<")
+        return "slt";
+    else if (relop == "<=")
+        return "sle";
+    return(" <<matan tarif ha ktana me pluga BET>> ");
+} 
+
+std::string freshLabel(std::string label){
+    static std::map<std::string, int> m = std::map<std::string, int>();
+    if (m.find(label) == m.end())
+        m[label] = 1;
+    return std::string(label + std::to_string(m[label]++));
+
+}
 #endif //_UTILS_CPP

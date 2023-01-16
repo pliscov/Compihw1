@@ -1,16 +1,22 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "bp.hpp"
 #ifndef _TYPES_HPP
 #define _TYPES_HPP
 
 
 class TYPEClass {
     public:
+
         std::string value;
         std::string name;
         std::string type;
         std::string reg;
+        std::vector<std::pair<int, enum BranchLabelIndex>> truelist;
+        std::vector<std::pair<int, enum BranchLabelIndex>> falselist;
+        std::vector<std::pair<int, enum BranchLabelIndex>> nextlist;
+        std::string label;
         int offset;
         TYPEClass() = default;
         TYPEClass(std::string name, std::string type):
@@ -47,7 +53,8 @@ public:
 typedef class
 {
     public:
-	int byte;
+        std::string relop;
+	    int byte;
         std::string id;
         std::string funcid;
         TYPEClass TYPE;

@@ -51,7 +51,7 @@ newline         [\r\n]|(\r\n)
 "false"                     return FALSE;
 "if"                        return IF;
 "while"                     return WHILE;
-{relop}                     return RELOP;
+{relop}                     {yylval.relop = yytext; return RELOP;}
 {id}                        { yylval.id = yytext; return ID;};
 {num}                       {yylval.byte = atoi(yytext);return NUM;};
 \/\/[^\r\n]*(\r|\n|\r\n)?   {}

@@ -57,7 +57,7 @@
 %type <FormalsList> Formals FormalsList
 %type <ExpList> ExpList
 %type <Func> FuncsDecl
-%type <TYPE> Exp Type Call FormalDecl RetType
+%type <TYPE> Exp Type Call FormalDecl RetType BoolExp Statement Statements freshLabelMarker
 
 %left OR
 %left AND
@@ -133,11 +133,12 @@ FormalDecl 	: Type ID 	{
 ;
 NEWSCOPE : {manager.newScope("if");};
 ENDSCOPE : {/*output::endScope();*/manager.popScope();}
-BoolExp : Exp {checkBoolean($1);}
-Statements 	: Statement
-		   	| Statements Statement
+BoolExp : Exp {checkBoolean($1); $$.truelist = $1.truelist; $$.falselist = $1.falselist; $$.label = $1.label;}
+Statements 	: freshLabelMarker Statement {$$.label = $1.label;}
+		   	| Statements Statement { $$.label = $1.label;}
 ;
-Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {/*output::endScope();*/manager.popScope();}
+freshLabelMarker : {$$.label = freshLabel("statements"); buffer.emit($$.label + ":");}
+Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {$$.label = $3.label; /*output::endScope();*/manager.popScope(); }
 
 			| Type ID SC 			{ 
 										/* insert new symbol */
@@ -153,6 +154,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {/*output::
 											manager.insertID(y);
 											buffer.emit(y->reg + " = add " + getSizeByType(y->type) + " " + initialize(y->type) + ", 0");
 										}
+
 									}
 			| Type ID { $2 = std::string(yylval.id);} ASSIGN Exp SC { 
 										/* insert a symbol, maybe cast */
@@ -172,7 +174,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {/*output::
 											TYPEClass* y = new TYPEClass($2, $1.type);
 											y->reg = freshVar();
 											manager.insertID(y);
-											buffer.emit(y->reg + " = add " + getSizeByType(y->type) + " " + $5.reg + ", 0");
+											if (y->type != "BOOL") buffer.emit(y->reg + " = add " + getSizeByType(y->type) + " " + $5.reg + ", 0");
 										}
 										
 										/*todo*/
@@ -199,7 +201,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {/*output::
 											exit(1);
 										}
 										y->reg = freshVar();
-										buffer.emit(y->reg + " = add " + getSizeByType(y->type) + " " + $4.reg + ", 0");
+										if (y->type != "BOOL") buffer.emit(y->reg + " = add " + getSizeByType(y->type) + " " + $4.reg + ", 0");
 									}
 			| Call SC				{									
 									}
@@ -223,7 +225,13 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {/*output::
 											exit(1);
 										}
 									}
-			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE %prec IF
+			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE %prec IF {
+				std::string end = freshLabel("next");
+				buffer.bpatch($3.truelist, $6.label);
+				$$.nextlist = $6.nextlist;
+				buffer.emit(end + ":");
+				buffer.bpatch($3.falselist, end);
+			}
 			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE ELSE {manager.newScope("else");}Statement {/*output::endScope();*/manager.popScope();}
 			| WHILE LPAREN BoolExp RPAREN {manager.newScope("while");} Statement {/*output::endScope();*/manager.popScope();}
 			| BREAK SC  	{ 
@@ -371,26 +379,76 @@ Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  /*TYPES HAVE TO 
 			| NUM						{$$.type = "INT"; $$.reg = std::to_string(yylval.byte);}
 			| NUM B 					{$$.type = "BYTE"; checkByte(yylval.byte); $$.reg = std::to_string(yylval.byte);}
 			| STRING					{$$.type = "STRING"; $$.reg = "";}
-			| TRUE						{$$.type = "BOOL"; $$.reg = "true";}
-			| FALSE						{$$.type = "BOOL"; $$.reg = "false";}
+			| TRUE						{
+											$$.type = "BOOL";
+											$$.reg = "true";
+											$$.label = freshLabel("true");
+											buffer.emit($$.label + ":");
+											int location = buffer.emit("br label @");
+											$$.truelist.push_back(std::pair<int, BranchLabelIndex>(location, FIRST));
+											
+										}
+			| FALSE						{
+											$$.type = "BOOL";
+											$$.reg = "false";
+											$$.label = freshLabel("false");
+											buffer.emit($$.label + ":");
+											int location = buffer.emit("br label @");
+											$$.falselist.push_back(std::pair<int, BranchLabelIndex>(location, FIRST));
+
+										}
 			| NOT Exp					{
 											checkBoolean($2);
 											$$.type = "BOOL";
+
+											$$.truelist = $2.falselist;
+											$$.falselist = $2.truelist;
 										}
 			| Exp AND Exp				{
 											checkBoolean($1);
 											checkBoolean($3);
 											$$.type = std::string("BOOL");
+							
+
+
+											buffer.bpatch($1.truelist, $3.label);
+											$$.falselist = $1.falselist;
+											
+											$$.falselist.insert($$.falselist.end(), $3.falselist.begin(), $3.falselist.end());
+											$$.truelist = $3.truelist;
+
 										}
 			| Exp OR Exp				{
 											checkBoolean($1);
 											checkBoolean($3);
 											$$.type = std::string("BOOL");
+
+											$$.truelist = $1.truelist;
+											$$.truelist.insert($$.truelist.end(), $3.truelist.begin(), $3.truelist.end()); // 
+											/* SOLVE THIS PROBLEM - TRUELIST IS EMPTY ???? */
+											for (int i = 0; i < $$.truelist.size(); i++){
+												cout << $$.truelist[i].first << endl;
+											}
+											
+											buffer.bpatch($1.falselist, $3.label); 
+											$$.falselist = $3.falselist;
 										}
 			| Exp RELOP Exp				{
+											
 											checkNumeral($1);
 											checkNumeral($3);
 											$$.type = std::string("BOOL");
+
+											$$.label = freshLabel("relop");
+											buffer.emit($$.label + ":");
+											$$.reg = freshVar();
+											buffer.emit($$.reg + " = icmp " + processRelop(yylval.relop) + " i32 " + $1.reg + ", " + $3.reg);
+											int location = buffer.emit("br i1 " + $$.reg + ", label @, label @");
+											$$.truelist.push_back(std::pair<int, BranchLabelIndex>(location, FIRST));
+											$$.falselist.push_back(std::pair<int, BranchLabelIndex>(location, SECOND));
+
+											
+											
 										}
 			| LPAREN Type RPAREN Exp	{
 											checkNumeral($4);
