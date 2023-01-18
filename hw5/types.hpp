@@ -17,7 +17,10 @@ class TYPEClass {
         std::vector<std::pair<int, enum BranchLabelIndex>> truelist;
         std::vector<std::pair<int, enum BranchLabelIndex>> falselist;
         std::vector<std::pair<int, enum BranchLabelIndex>> nextlist;
+        std::vector<std::pair<int, enum BranchLabelIndex>> continuelist;
+        std::vector<std::pair<int, enum BranchLabelIndex>> breaklist;
         std::string label;
+        std::string end;
         int offset;
         TYPEClass() = default;
         TYPEClass(std::string name, std::string type):

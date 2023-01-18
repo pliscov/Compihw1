@@ -1,0 +1,5 @@
+void main(){
+	bool x = true or false;
+	bool y = (1 > 0) and (false or false);
+	return;
+}

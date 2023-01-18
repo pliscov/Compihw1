@@ -18,13 +18,12 @@ bool isBoolean(TYPEClass y);
 void checkBoolean(TYPEClass y);
 bool isNumeral(TYPEClass y);
 void checkNumeral(TYPEClass y);
-std::string freshVar();
 std::string largestType(std::string type1, std::string type2);
 std::string getLargestType(std::string type1, std::string type2);
 std::string initialize(std::string type);
 std::string getSizeByType(std::string type);
 std::string processRelop(std::string relop);
-std::string freshLabel(std::string label);
+std::string fresh(std::string label);
 
 
 

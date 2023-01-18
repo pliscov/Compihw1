@@ -1,0 +1,25 @@
+true1:
+br label %true2
+false1:
+br label %false2
+true2:
+br label %end1
+false2:
+end1:
+%ptr1 = alloca i32
+%t1 = phi i32 [1, true2], [0, false2]
+store i32%t1, ptr %ptr1
+relop1:
+%t2 = icmp sgt i32 1, 0
+br i1 %t2, label %false3, label %false5
+false3:
+br label %false4
+false4:
+br label %false5
+true3:
+br label %end2
+false5:
+end2:
+%ptr2 = alloca i32
+%t3 = phi i32 [1, true3], [0, false5]
+store i32%t3, ptr %ptr2

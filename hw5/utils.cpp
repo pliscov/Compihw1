@@ -1,3 +1,6 @@
+#ifndef _UTILS_CPP
+#define _UTILS_CPP
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -7,8 +10,7 @@
 #include "hw3_output.hpp"
 #include "types.hpp"
 #include <map>
-#ifndef _UTILS_CPP
-#define _UTILS_CPP
+#include "bp.hpp"
 extern int yylineno;
 
 
@@ -73,11 +75,6 @@ std::string largestType(std::string type1, std::string type2)
     return (type1 == "INT" || type2 == "INT") ? "INT" : "BYTE";
 }
 
-std::string freshVar(){
-    static int i = 1;
-    return (std::string("%t")+std::to_string(i++));
-}
-
 std::string getLargestType(std::string type1, std::string type2){
     return (largestType(type1, type2) == "INT") ? "i32" : "i8";
 }
@@ -111,7 +108,7 @@ std::string processRelop(std::string relop){ //this could be WRONG
     return(" <<matan tarif ha ktana me pluga BET>> ");
 } 
 
-std::string freshLabel(std::string label){
+std::string fresh(std::string label){
     static std::map<std::string, int> m = std::map<std::string, int>();
     if (m.find(label) == m.end())
         m[label] = 1;
