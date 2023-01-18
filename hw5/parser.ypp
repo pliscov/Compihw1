@@ -149,6 +149,10 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {$$.label =
 										}
 										else
 										{
+										    /*
+										    %ptr = alloca i32
+										    store i32 <default value>, ptr %ptr
+										    */
 											TYPEClass* y = new TYPEClass(yylval.id, $1.type);
 											y->reg = freshVar();
 											manager.insertID(y);
@@ -170,7 +174,10 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {$$.label =
 										}
 										else
 										{
-											 
+											/*
+                                            %ptr = alloca i32
+                                            store i32 Exp.reg, ptr %ptr
+                                            */
 											TYPEClass* y = new TYPEClass($2, $1.type);
 											y->reg = freshVar();
 											manager.insertID(y);
@@ -200,6 +207,9 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {$$.label =
 											output::errorMismatch(yylineno);
 											exit(1);
 										}
+										/*
+										store i32 Exp.reg, ptr ID.ptr
+										*/
 										y->reg = freshVar();
 										if (y->type != "BOOL") buffer.emit(y->reg + " = add " + getSizeByType(y->type) + " " + $4.reg + ", 0");
 									}
@@ -226,14 +236,26 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE {$$.label =
 										}
 									}
 			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE %prec IF {
-				std::string end = freshLabel("next");
 				buffer.bpatch($3.truelist, $6.label);
 				$$.nextlist = $6.nextlist;
-				buffer.emit(end + ":");
-				buffer.bpatch($3.falselist, end);
+				$$.nextlist.merge($3.falselist); // TODO : implement, this is pseudo-code
 			}
-			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE ELSE {manager.newScope("else");}Statement {/*output::endScope();*/manager.popScope();}
-			| WHILE LPAREN BoolExp RPAREN {manager.newScope("while");} Statement {/*output::endScope();*/manager.popScope();}
+			| IF LPAREN BoolExp RPAREN NEWSCOPE Statement ENDSCOPE ELSE {manager.newScope("else");}Statement {
+			    manager.popScope();
+			    buffer.bpatch($3.truelist, $6.label);
+				$$.nextlist = $6.nextlist;
+			    buffer.bpatch($3.truelist, $6.label);
+			    buffer.bpatch($3.falselist, $10.label);
+			    $$.nextlist.merge($10.nextlist); // TODO : implement, this is pseudo-code
+
+			}
+			| WHILE LPAREN BoolExp RPAREN {manager.newScope("while");} Statement {
+			    manager.popScope();
+			    buffer.bpatch($3.truelist, $6.label);
+			    $$.nextlist = $6.nextlist;
+			    $$.nextlist.merge($3.falselist); // TODO : implement, this is pseudo-code
+			    emit("br label %"+ $3.label); // TODO : not sure about this one
+			}
 			| BREAK SC  	{ 
 								if (!manager.inScope("while"))
 								{
@@ -371,6 +393,12 @@ Exp 		: LPAREN Exp RPAREN	{$$.type = $2.type;}                  /*TYPES HAVE TO 
 												output::errorUndef(yylineno, yylval.id);
 												exit(1);
 											}
+											/*
+											this one is a bit different -
+										    what we need here is:
+										    1 - $$.reg = freshVar()
+										    2 - emit(load i32 (not sure about i32 here), ptr y->ptr;
+											*/
 											$$.reg = y->reg;
 											$$.type = y->type;
 

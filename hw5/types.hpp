@@ -12,6 +12,7 @@ class TYPEClass {
         std::string value;
         std::string name;
         std::string type;
+        std::string ptr;
         std::string reg;
         std::vector<std::pair<int, enum BranchLabelIndex>> truelist;
         std::vector<std::pair<int, enum BranchLabelIndex>> falselist;
