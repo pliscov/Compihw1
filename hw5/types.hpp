@@ -19,6 +19,8 @@ class TYPEClass {
         std::vector<std::pair<int, enum BranchLabelIndex>> nextlist;
         std::vector<std::pair<int, enum BranchLabelIndex>> continuelist;
         std::vector<std::pair<int, enum BranchLabelIndex>> breaklist;
+        std::vector<std::pair<int, enum BranchLabelIndex>> hooklist;
+        std::string hooklabel;
         std::string label;
         std::string end;
         int offset;
@@ -47,11 +49,13 @@ class FuncClass: public TYPEClass{
 class FormalsListClass{
     public:
         std::vector<TYPEClass> list;
+        
 };
 
 class ExpListClass{
-public:
-    std::vector<TYPEClass> list;
+    public:
+        std::vector<TYPEClass> list;
+        std::string getParams();
 };
 
 typedef class

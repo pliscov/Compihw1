@@ -1,0 +1,57 @@
+br label %hook1
+hook1:
+br label %hook2
+hook2:
+relop1:
+br label %relop2
+hook3:
+%t1 = icmp sgt i32 1, 2
+br i1 %t1, label %true1, label %false1
+br label %hook4
+hook4:
+br label %hook5
+hook5:
+relop2:
+br label %relop3
+hook6:
+%t2 = icmp eq i32 3, 2
+br i1 %t2, label %hook3, label %relop5
+br label %hook7
+hook7:
+br label %hook8
+hook8:
+relop3:
+br label %hook9
+hook9:
+%t3 = icmp sge i32 3, 4
+br i1 %t3, label %hook6, label %relop4
+br label %hook10
+hook10:
+br label %hook11
+hook11:
+relop4:
+br label %hook12
+hook12:
+%t4 = icmp sle i32 3, 5
+br i1 %t4, label %hook3, label %relop5
+br label %hook13
+hook13:
+br label %hook14
+hook14:
+br label %hook15
+hook15:
+relop5:
+br label %hook16
+hook16:
+%t5 = icmp slt i32 6, 7
+br i1 %t5, label %true1, label %false1
+br label %hook17
+hook17:
+true1:
+br label %end1
+false1:
+br label %end1
+end1:
+%ptr1 = alloca i32
+%t6 = phi i32 [1, %true1], [0, %false1]
+store i32%t6, ptr %ptr1

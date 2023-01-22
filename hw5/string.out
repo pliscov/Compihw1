@@ -1,0 +1,59 @@
+list[0].reg : %ptr1
+$1.reg : %ptr1
+%ptr1
+list[0].reg : %t3
+$1.reg : %t3
+%t1
+%t2
+%t3
+list[0].reg : 5
+$1.reg : 5
+5
+@str1 = internal constant [22 x i8] c"matan tarif ha ktana\n\00"
+declare i32 @printf(i8*, ...)
+declare void @exit(i32)
+@.int_specifier = constant [4 x i8] c"%d\0A\00"
+@.str_specifier = constant [4 x i8] c"%s\0A\00"
+
+define void @printi(i32) {
+    %spec_ptr = getelementptr [4 x i8], [4 x i8]* @.int_specifier, i32 0, i32 0
+    call i32 (i8*, ...) @printf(i8* %spec_ptr, i32 %0)
+    ret void
+}
+
+define void @print(i8*) {
+    %spec_ptr = getelementptr [4 x i8], [4 x i8]* @.str_specifier, i32 0, i32 0
+    call i32 (i8*, ...) @printf(i8* %spec_ptr, i8* %0)
+    ret void
+}
+
+ret void
+br label %exp1
+exp1:
+%ptr1 = getelementptr [24 x i8], [24 x i8]* @str1, i32 0, i32 0
+call void @print(i8* %ptr1)
+br label %exp2
+exp2:
+%ptr2 = alloca i32
+store i32 1, ptr %ptr2
+br label %exp3
+exp3:
+%ptr3 = alloca i32
+store i32 2, ptr %ptr3
+br label %exp4
+exp4:
+%ptr4 = alloca i32
+store i32 3, ptr %ptr4
+br label %exp5
+exp5:
+%t1 = load i32, i32* %ptr2
+br label %exp6
+exp6:
+%t2 = load i32, i32* %ptr3
+br label %exp7
+exp7:
+%t3 = load i32, i32* %ptr4
+call void @zibi(i32 %t1, i32 %t2, i32 %t3)
+br label %exp8
+exp8:
+call void @printi(i32 5)

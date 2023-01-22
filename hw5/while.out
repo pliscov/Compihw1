@@ -1,0 +1,36 @@
+%ptr1 = alloca i32
+store i32 1, ptr %ptr1
+%t1 = sub i32 6, 1
+relop1:
+%t2 = icmp sge i32 5, %t1
+br i1 %t2, label %true1, label %end4
+true1:
+true2:
+br label %relop2
+relop2:
+%t3 = icmp sgt i32 5, 4
+br i1 %t3, label %true3, label %end3
+true3:
+true4:
+br label %true5
+true5:
+br label %true2
+end1:
+%t4 = load i32, i32* %ptr1
+%t5 = add i32 %t4, 1
+store i32 %t5, ptr %ptr1
+%t6 = load i32, i32* %ptr1
+relop3:
+%t7 = icmp slt i32 %t6, 10
+br i1 %t7, label %true6, label %false1
+true6:
+br label %true2
+br label %end2
+false1:
+br label %end3
+end2:
+br label %true2
+end3:
+br label %end4
+br label %relop1
+end4:

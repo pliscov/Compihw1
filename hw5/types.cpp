@@ -10,6 +10,8 @@ TYPEClass::TYPEClass(const TYPEClass& other)
 {
     this->name = std::string(other.name);
     this->type = std::string(other.type);
+    this->reg = std::string(other.reg);
+    this->ptr = std::string(other.ptr);
     this->offset = other.offset;
 }
 // FUNC //
@@ -67,6 +69,18 @@ SymbolTable::SymbolTable(std::string scope_type, std::string ret_type)
 //     this->scope_type = other.scope_type;
 //     this->ret_type = other.ret_type;
 // }
+
+std::string ExpListClass::getParams(){
+    std::string res = "";
+    for (int i = 0; i < list.size(); i++){
+        cout << list[i].reg << endl;
+        res += getSizeByType(list[i].type) + " " + list[i].reg + ((i < list.size() - 1) ? ", " : ""); 
+    }
+
+    return res;
+}
+
+
 
 TYPEClass* SymbolTable::get(std::string symbol_name)
 {

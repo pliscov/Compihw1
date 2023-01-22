@@ -12,7 +12,8 @@
 #include <map>
 #include "bp.hpp"
 extern int yylineno;
-
+extern char* yytext;
+extern int yyleng;
 
 
 bool isValidByte(int val)
@@ -86,7 +87,11 @@ std::string getSizeByType(std::string type){
         return "i8";
     else if (type == "BOOL")
         return "i1";
-    return "matan tarif ha ktana";
+    else if (type == "VOID")
+        return "void";
+    else if (type == "STRING")
+        return "i8*";
+    return "<<BAD SIZE!!!>>";
 }
 std::string initialize(std::string type){
     return (type != "BOOL") ? std::string("0") : std::string("false");
@@ -115,4 +120,15 @@ std::string fresh(std::string label){
     return std::string(label + std::to_string(m[label]++));
 
 }
+
+void mergeContinueBreak(TYPEClass& dest, TYPEClass src1, TYPEClass src2){
+    dest.continuelist = CodeBuffer::merge(src1.continuelist, src2.continuelist);
+    dest.breaklist = CodeBuffer::merge(src1.breaklist, src2.breaklist);
+}
+
+void mergeContinueBreak(TYPEClass& dest, TYPEClass src){
+    dest.continuelist = src.continuelist;
+    dest.breaklist = src.breaklist;
+}
+
 #endif //_UTILS_CPP

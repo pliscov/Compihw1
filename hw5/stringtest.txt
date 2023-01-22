@@ -1,0 +1,12 @@
+void zibi(int x, int y, int z){
+	return;
+}
+
+void main(){
+	print("matan tarif ha ktana\n");
+	int x = 1;
+	int y = 2;
+	int z = 3;
+	zibi(x, y, z);
+	printi(5);
+}

@@ -24,6 +24,9 @@ std::string initialize(std::string type);
 std::string getSizeByType(std::string type);
 std::string processRelop(std::string relop);
 std::string fresh(std::string label);
+void mergeContinueBreak(TYPEClass& dest, TYPEClass src1, TYPEClass src2);
+void mergeContinueBreak(TYPEClass& dest, TYPEClass src);
+
 
 
 
