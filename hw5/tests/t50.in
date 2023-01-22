@@ -1,0 +1,45 @@
+// function in trenary
+bool divByZero(int longVarNameBecauseIveSaidSo) {
+    print("Side effect you shouldn't be seeing...");
+    printi(longVarNameBecauseIveSaidSo);
+    if (longVarNameBecauseIveSaidSo / 0 > 0) {
+        return true;
+    }
+}
+
+bool divByOne(int longerVarNameBecauseIveSaidSo) {
+    print("This is the print you should be seeing =D");
+    printi(longerVarNameBecauseIveSaidSo);
+    if (longerVarNameBecauseIveSaidSo / 1 > 0) {
+        // print("returning true...");
+        return true;
+    }
+    // print("returning false...");
+}
+
+void main() {
+    print("This is call to function inside a trenary op test");
+    print("May GOD have mercy on your soul");
+    print(" >>> You should be expecting 'You survived' 3 times");
+    bool evilTrenary = divByZero(2 * 5) if (8-2 <= 2-8) else divByOne(527284);
+    if (evilTrenary) {
+        print("You survived!");
+    }
+    else 
+        print("Disgrace upon you!");
+    
+    evilTrenary = divByOne(699953) if (8-2 >= 2-8) else divByZero(1290767-134312);
+    if (evilTrenary) {
+        print("You survived!");
+    }
+    else
+        print("Disgrace upon your family");
+
+    evilTrenary = divByOne(84563128) if (divByOne(17 * 800 - 7000)) else divByZero(13460);
+    if(evilTrenary){
+        print("You survived!");
+    }
+    else
+        print("Disgrace upon your dog");
+    print("Bye bitches");
+}

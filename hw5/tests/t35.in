@@ -1,0 +1,69 @@
+void main() {
+    int x = 8;
+    int y = 0;
+    bool z = true;
+    byte bb = 15b;
+
+    if (bb > x) {
+        print("Good print 1");
+
+        int tmp = x if (z or x > y) else bb;
+        print("Good print 2");
+        if (tmp != x) {
+            print("Failed 1");
+            return;
+        }
+        print("Good print 3");
+        byte tmp2 = (byte)tmp if (true and false and (not true)) else (byte)(int)bb;
+        if (tmp2 != bb) {
+            print("Failed 2");
+            return;
+        }
+        else
+        {
+            print("Good print 4");
+            while (false) {
+                print("Failed 3");
+                return;
+            }
+
+            print("Good print 5");
+            while (false or (bb < 100)) {
+                bb = bb -1b;
+            }
+            if (bb != 255) {
+                print("Failed 4");
+                return;
+            }
+            print("Good print 6");
+            y = x if (bb > 5) else y if (bb < 5) else bb;
+            // y = x if (bb > 5) else (y if (bb < 5) else bb);
+            if (y != x) {
+                print("y = ");
+                printi(y);
+                print("x = ");
+                printi(x);
+                print("Failed 5");
+                print("Make sure your assoc is correct");
+                return;
+            }
+            print("Good print 7");
+            y = (x if (bb > 5) else y) if (bb < 5) else bb;
+            if (y != bb) {
+                print("Failed 6");
+                return;
+            }
+            else
+            {
+                print("Finished the medium test :)");
+                return;
+            }
+        }
+        
+    }
+    else {
+        print("Failed");
+        return;
+    }
+    print("Shouldn't get here...");
+}

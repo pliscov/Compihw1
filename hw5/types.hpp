@@ -46,16 +46,11 @@ class FuncClass: public TYPEClass{
         bool legalParams(std::vector<TYPEClass> param_list);
 };
 
-class FormalsListClass{
-    public:
-        std::vector<TYPEClass> list;
-        
-};
-
 class ExpListClass{
     public:
         std::vector<TYPEClass> list;
         std::string getParams();
+        void convertParams(std::vector<TYPEClass> formals_list);
 };
 
 typedef class
@@ -67,7 +62,7 @@ typedef class
         std::string funcid;
         TYPEClass TYPE;
         FuncClass Func;
-        FormalsListClass FormalsList;
+        ExpListClass FormalsList;
         ExpListClass ExpList;
 } STYPE;
 

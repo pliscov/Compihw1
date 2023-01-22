@@ -1,0 +1,11 @@
+void main()
+{
+    print("Nested Trenary for you");
+    bool x = (true if (true) else false) if (true) else false;
+    //        1        2          1          3          2
+    if(x)
+        print("OK you get to live");
+    if(not x) {
+        print("You fail LOSER");
+    }
+}

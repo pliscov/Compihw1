@@ -94,7 +94,16 @@ std::string getSizeByType(std::string type){
     return "<<BAD SIZE!!!>>";
 }
 std::string initialize(std::string type){
-    return (type != "BOOL") ? std::string("0") : std::string("false");
+    if (type == "BOOL"){
+        return std::string("false");
+    }
+    else if (type == "INT" || type == "BYTE"){
+        return std::string(0);
+    }
+    else if (type == "VOID" || type == "STRING"){
+        return "";
+    }
+    return "<THIS SHOULD NOT BE PRINTED>";
 }
 
 std::string processRelop(std::string relop){ //this could be WRONG

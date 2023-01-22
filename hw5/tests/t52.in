@@ -1,0 +1,24 @@
+void soGood()
+{
+    print("You should be seeing 6 'Good's");
+}
+
+bool getTrue() {
+    return true;
+}
+
+bool getTrueButNested() {
+    return getTrue();
+}
+
+
+void main() {
+    soGood();
+    print("Good" if (true) else "BAD");
+    print("BAD" if (false) else "Good");
+    print("Good" if (getTrue()) else "BAD");
+    print("Good" if (getTrueButNested()) else "BAD");
+    print("BAD" if (false) else "Good" if (getTrueButNested() or getTrueButNested() and getTrueButNested()) else "BAD");
+    print("Good"); // This one is on the house
+    soGood();
+}

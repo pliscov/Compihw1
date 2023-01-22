@@ -64,8 +64,7 @@
 %token NUM
 %token STRING
 %type <funcid> FuncID;
-%type <FormalsList> Formals FormalsList
-%type <ExpList> ExpList
+%type <ExpList> ExpList Formals FormalsList
 %type <Func> FuncsDecl
 %type <TYPE> Exp Type Call FormalDecl RetType BoolExp Statement Statements GOTO TRUELABEL FALSELABEL
 
@@ -104,20 +103,22 @@ FuncsDecl 	: RetType FuncID LPAREN Formals
                 manager.insert(func);
 				manager.newScope("func", func->ret_type);
 				manager.insertParams($4.list);
+				buffer.emit("define " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ") {");
 
 			} RPAREN LBRACE Statements RBRACE 	
-{
-	FuncClass *func = dynamic_cast<FuncClass*>(manager.get($2));
-	if (func == nullptr)
-	{
-		printf("bad pointer");
-		exit(1);
-	}
+			{
+				FuncClass *func = dynamic_cast<FuncClass*>(manager.get($2));
+				if (func == nullptr)
+				{
+					printf("bad pointer");
+					exit(1);
+				}
 
-	///*output::endScope*/();
-	manager.popScope();
-
-}
+				///*output::endScope*/();
+				manager.popScope();
+				buffer.emit("ret " + getSizeByType(func->ret_type) + initialize(func->ret_type));
+				buffer.emit("}");
+			}
 ;
 RetType 	: Type	{$$.type = $$.name = $1.type;}
 			| VOID  {$$.type = "VOID";}
@@ -164,8 +165,8 @@ Statements 	: Statement 			{
 									
 ;
 
-TRUELABEL : {$$.label = fresh("true"); buffer.emit($$.label + ":");}
-FALSELABEL : {$$.label = fresh("false"); buffer.emit($$.label + ":");}
+TRUELABEL : {$$.label = fresh("truelabel"); buffer.emit("br label %" + $$.label); buffer.emit($$.label + ":");}
+FALSELABEL : {$$.label = fresh("falselabel"); buffer.emit("br label %" + $$.label); buffer.emit($$.label + ":");}
 GOTO : {$$.nextlist.push_back(std::pair<int, BranchLabelIndex>(buffer.emit("br label @"), FIRST));}
 Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE 
 									{
@@ -190,7 +191,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 											TYPEClass* y = new TYPEClass(yylval.id, $1.type);
 											y->ptr = fresh("%ptr");
 											buffer.emit(y->ptr + " = alloca i32");
-											buffer.emit("store i32 0, ptr " + y->ptr);
+											buffer.emit("store i32 0, i32* " + y->ptr);
 											manager.insertID(y);
 											
 										}
@@ -215,24 +216,11 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 											TYPEClass* y = new TYPEClass($2, $1.type);
 											if (y->type == "BOOL")
 											{
-												/* not currently using this -- instead, using phi
-												y->ptr = fresh("%ptr");
-												buffer.emit(y->ptr + " = alloca i32");
-												std::string truelabel = fresh("true"), falselabel = fresh("false"), endlabel = fresh("end");
-												buffer.emit(truelabel + ":");
-												buffer.emit("store i32 1, ptr " + y->ptr);
-												buffer.emit("br label %" + endlabel);
-												buffer.emit(falselabel + ":");
-												buffer.emit("br label %" + endlabel);
-												buffer.emit("store i32 0, ptr " + y->ptr);
-												buffer.emit(endlabel + ":");
-												bufer.bpatch($5.truelist, truelabel);
-												buffer.bpatch($5.falselist, falselabel);
-												*/
+												
 
 												y->ptr = fresh("%ptr");
-												buffer.emit(y->ptr + " = alloca i32");
-												std::string truelabel = fresh("true"), falselabel = fresh("false"), endlabel = fresh("end");
+												std::string truelabel = fresh("truelabel"), falselabel = fresh("falselabel"), endlabel = fresh("endlabel");
+												buffer.emit("br label %" + truelabel);
 												buffer.emit(truelabel + ":");
 												buffer.emit("br label %" + endlabel);
 												buffer.emit(falselabel + ":");
@@ -240,9 +228,11 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 												buffer.emit(endlabel + ":");
 												std::string temp = fresh("%t");
 												buffer.emit(temp + " = phi i32 [1, %" + truelabel + "], [0, %" + falselabel + "]");
-												buffer.emit("store i32 " + temp +", ptr " + y->ptr);
+												buffer.emit(y->ptr + " = alloca i32");
+												buffer.emit("store i32 " + temp +", i32* " + y->ptr);
 												buffer.bpatch($5.truelist, truelabel);
 												buffer.bpatch($5.falselist, falselabel);
+												manager.insertID(y);
 
 												
 											}
@@ -256,7 +246,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 													buffer.emit(zextvar + " = zext " + getSizeByType($5.type) + " " + $5.reg + " to i32");
 												else
 													zextvar = $5.reg;
-												buffer.emit("store i32 " + zextvar + ", ptr " + y->ptr);
+												buffer.emit("store i32 " + zextvar + ", i32* " + y->ptr);
 												manager.insertID(y);
 											}
 										}
@@ -290,11 +280,12 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 										{
 											/* currently using phi instead
 											std::string truelabel = fresh("true"), falselabel = fresh("false"), endlabel = fresh("end");
+											buffer.emit("br label %" + truelabel);
 											buffer.emit(truelabel + ":");
-											buffer.emit("store i32 1, ptr " + y->ptr);
+											buffer.emit("store i32 1, i32* " + y->ptr);
 											buffer.emit("br label %" + endlabel);
 											buffer.emit(falselabel + ":");
-											buffer.emit("store i32 0, ptr " + y->ptr);
+											buffer.emit("store i32 0, i32* " + y->ptr);
 											buffer.emit(endlabel + ":");
 											buffer.bpatch($4.truelist, truelabel);
 											buffer.bpatch($4.falselist, falselabel);
@@ -303,15 +294,18 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 
 											y->ptr = fresh("%ptr");
 											std::string truelabel = fresh("true"), falselabel = fresh("false"), endlabel = fresh("end");
+											buffer.emit("br label %" + truelabel);
 											buffer.emit(truelabel + ":");
 
 											buffer.emit("br label %" + endlabel);
 											buffer.emit(falselabel + ":");
 
+											buffer.emit("br label %" + endlabel);
 											buffer.emit(endlabel + ":");
 											std::string temp = fresh("%t");
-											buffer.emit(temp + " = phi i32 [1, " + truelabel + "], [0, " + falselabel + "]");
-											buffer.emit("store i32" + temp +", ptr " + y->ptr);
+											buffer.emit(temp + " = phi i32 [1, %" + truelabel + "], [0, %" + falselabel + "]");
+											buffer.emit(y->ptr + " = alloca i32");
+											buffer.emit("store i32 " + temp +", i32* " + y->ptr);
 											buffer.bpatch($4.truelist, truelabel);
 											buffer.bpatch($4.falselist, falselabel);
 											
@@ -323,7 +317,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 													buffer.emit(zextvar + " = zext " + getSizeByType($4.type) + " " + $4.reg + " to i32");
 												else
 													zextvar = $4.reg;
-											buffer.emit("store i32 " + zextvar + ", ptr " + y->ptr);
+											buffer.emit("store i32 " + zextvar + ", i32* " + y->ptr);
 										}
 										
 									}
@@ -338,6 +332,7 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 											exit(1);
 										}
 										buffer.emit("ret void");
+
 
 									}
 			| RETURN Exp SC			{ /* check NOT void ret type */
@@ -358,10 +353,12 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 				$$.breaklist = $7.breaklist;
 				$$.nextlist = CodeBuffer::merge($7.nextlist, $3.falselist);
 				buffer.bpatch($3.truelist, $5.label);
-
+				
 				$$.nextlist = CodeBuffer::merge($7.nextlist, $3.falselist);
 
-				$$.end = fresh("end");
+				$$.end = fresh("endlabel");
+				buffer.bpatch($3.falselist, $$.end);
+				buffer.emit("br label %" + $$.end);
 				buffer.emit($$.end + ":");
 				buffer.bpatch($$.nextlist, $$.end);
 
@@ -381,7 +378,8 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 				
 			    buffer.bpatch($3.falselist, $12.label);
 
-				$$.end = fresh("end");
+				$$.end = fresh("endlabel");
+				buffer.emit("br label %" + $$.end);
 				buffer.emit($$.end + ":");
 				buffer.bpatch($$.nextlist, $$.end);
 
@@ -402,7 +400,8 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 				buffer.bpatch($7.nextlist, $3.label);
 			    buffer.emit("br label %"+ $3.label); // TODO : not sure about this one
 
-				$$.end = fresh("end");
+				$$.end = fresh("endlabel");
+				buffer.emit("br label %" + $$.end);
 				buffer.emit($$.end + ":");
 				buffer.bpatch($3.falselist, $$.end);
 				buffer.bpatch($7.continuelist, $3.label);
@@ -462,6 +461,7 @@ Call 		: FuncID LPAREN 	{
 													exit(1);
 												}
 												$$.type = func->ret_type;
+												$4.convertParams(func->params);
 												buffer.emit("call " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ")");
 												
 							}
@@ -517,7 +517,7 @@ Exp 		: LPAREN Exp RPAREN					{
 													if (isNumeral($1) && isNumeral($7))
 													{
 														$$.type = largestType($1.type, $7.type);
-														std::string truelabel = fresh("true"), falselabel = fresh("false"), endlabel = fresh("end");
+														std::string truelabel = fresh("truelabel"), falselabel = fresh("falselabel"), endlabel = fresh("endlabel");
 														buffer.emit(truelabel + " :");
 														buffer.emit("br label %" + endlabel);
 														
@@ -567,7 +567,7 @@ Exp 		: LPAREN Exp RPAREN					{
 											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
 											zext(&$1, &$3);
-											buffer.emit($$.reg + " = add " + getLargestType($1.type,$3.type) + " " + $1.reg + ", " + $3.reg);
+											buffer.emit($$.reg + " = add " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
 										}
 			| Exp SUB Exp				{
 											hook(&$$);
@@ -579,7 +579,7 @@ Exp 		: LPAREN Exp RPAREN					{
 											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
 											zext(&$1, &$3);
-											buffer.emit($$.reg + " = sub " + getLargestType($1.type,$3.type) + " " + $1.reg + ", " + $3.reg);
+											buffer.emit($$.reg + " = sub " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
 										}
 			| Exp DIV Exp				{
 											hook(&$$);
@@ -591,7 +591,19 @@ Exp 		: LPAREN Exp RPAREN					{
 											$$.reg = fresh("%t");
 											zext(&$1, &$3);
 											std::string type = $$.type == "INT" ? "sdiv" : "udiv";
-											buffer.emit($$.reg + " = " + type + " " + getLargestType($1.type,$3.type) + " " + $1.reg + ", " + $3.reg);
+											std::string divzero = fresh("divzerolabel"), end_divzero = fresh("end_divzerolabel");
+											std::string temp = fresh("%t");
+
+											buffer.emit(temp + " = icmp eq " + getSizeByType($$.type) + " 0, " + $3.reg);
+											buffer.emit("br i1 " + temp + ", label %" + divzero + ", label %" + end_divzero);
+											buffer.emit(divzero + ":");
+											std::string stringptr = fresh("%ptr");
+											buffer.emit(stringptr + " = getelementptr [23 x i8], [23 x i8]* @divzero, i32 0, i32 0");
+											buffer.emit("call void @print(i8* " + stringptr + ")");
+											buffer.emit("call void @exit(i32 1)");
+											buffer.emit("br label %" + end_divzero);
+											buffer.emit(end_divzero + ":");
+											buffer.emit($$.reg + " = " + type + " " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
 			
 										}
 			
@@ -601,9 +613,10 @@ Exp 		: LPAREN Exp RPAREN					{
 											bphook(&$3);
 											checkNumeral($1);
 											checkNumeral($3);
+											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
 											zext(&$1, &$3);
-											buffer.emit($$.reg + " = mul " + getLargestType($1.type,$3.type) + " " + $1.reg + ", " + $3.reg);
+											buffer.emit($$.reg + " = mul " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
 										}
 			| ID 						{
 											hook(&$$);
@@ -620,21 +633,32 @@ Exp 		: LPAREN Exp RPAREN					{
 												exit(1);
 											}
 
-											/*
-											this one is a bit different -
-										    what we need here is:
-										    1 - $$.reg = fresh("%t")
-										    2 - emit(load i32 (not sure about i32 here), ptr y->ptr;
-											*/
+											
 											
 											$$.reg = fresh("%t");
 											$$.type = y->type;
 											buffer.emit($$.reg + " = load i32, i32* " + y->ptr);
-											if (y->type != "INT")
+											if (y->type == "BYTE")
 											{
 												std::string temp = $$.reg;
 												$$.reg = fresh("%t");
 												buffer.emit($$.reg + " = trunc i32 " + temp + " to " + getSizeByType(y->type));
+											}
+
+											if (y->type == "BOOL")
+											{
+												std::string idlabel = fresh("idlabel");
+												buffer.emit("br label %" + idlabel);
+												$$.label = idlabel;
+												buffer.emit(idlabel + ":");
+
+												std::string temp = fresh("%t");
+
+												buffer.emit(temp + " = icmp eq i32 1, " + $$.reg);
+												int location = buffer.emit("br i1 " + temp + ", label @, label @");
+												$$.truelist.push_back(std::pair<int, BranchLabelIndex>(location, FIRST));
+												$$.falselist.push_back(std::pair<int, BranchLabelIndex>(location, SECOND));
+												
 											}
 										}
 			| Call						{
@@ -655,22 +679,24 @@ Exp 		: LPAREN Exp RPAREN					{
 											$$.reg = std::to_string(yylval.byte);
 										}
 			| STRING					{
-											hook(&$$);
+											
 											$$.type = "STRING";
 											std::string global = fresh("@str");
 											yytext += 1;
 											yytext[yyleng - 2] = '\0';
+											int size = std::string(yytext).size() + 1;
 											buffer.emitGlobal(global + " = internal constant [" 
-											+ std::to_string(std::string(yytext).size()) + " x i8] c\"" + yytext + "\\00\"");
+											+ std::to_string(size) + " x i8] c\"" + yytext + "\\00\"");
 											$$.reg = fresh("%ptr");
-											std::string type = "[" + std::to_string(yyleng) + " x i8]";
-											buffer.emit($$.reg + " = getelementptr " + type + ", " +
+											std::string type = "[" + std::to_string(size) + " x i8]";
+											buffer.emit($$.reg + " = getelementptr " + type + ", " + 
 											 type + "* " + global + ", i32 0, i32 0");
 
 											
 										}
 			| TRUE						{
-											$$.label = fresh("true");
+											$$.label = fresh("truebool");
+											buffer.emit("br label %" + $$.label);
 											buffer.emit($$.label + ":");
 											hook(&$$);
 											$$.type = "BOOL";
@@ -682,7 +708,8 @@ Exp 		: LPAREN Exp RPAREN					{
 											
 										}
 			| FALSE						{
-											$$.label = fresh("false");
+											$$.label = fresh("falsebool");
+											buffer.emit("br label %" + $$.label);
 											buffer.emit($$.label + ":");
 											hook(&$$);
 											$$.type = "BOOL";
@@ -697,7 +724,7 @@ Exp 		: LPAREN Exp RPAREN					{
 											bphook(&$2);
 											checkBoolean($2);
 											$$.type = "BOOL";
-
+											$$.label = $2.label;
 											$$.truelist = $2.falselist;
 											$$.falselist = $2.truelist;
 										}
@@ -708,7 +735,7 @@ Exp 		: LPAREN Exp RPAREN					{
 											checkBoolean($1);
 											checkBoolean($3);
 											$$.type = std::string("BOOL");
-											
+											$$.label = $1.label;
 
 											buffer.bpatch($1.truelist, $3.label);
 											$$.falselist = CodeBuffer::merge($1.falselist, $3.falselist);;
@@ -725,7 +752,7 @@ Exp 		: LPAREN Exp RPAREN					{
 											checkBoolean($1);
 											checkBoolean($3);
 											$$.type = std::string("BOOL");
-
+											$$.label = $1.label;
 											$$.truelist = CodeBuffer::merge($1.truelist, $3.truelist);
 											buffer.bpatch($1.falselist, $3.label);
 											$$.falselist = $3.falselist;
@@ -734,18 +761,21 @@ Exp 		: LPAREN Exp RPAREN					{
 											
 										}
 			| Exp RELOP Exp				{
-											$$.label = fresh("relop");
+											
+											$$.label = fresh("reloplabel");
+											buffer.emit("br label %" + $$.label);
 											buffer.emit($$.label + ":");
 											hook(&$$);
 											bphook(&$1);
 											bphook(&$3);
 											checkNumeral($1);
 											checkNumeral($3);
+											
 											$$.type = std::string("BOOL");
 
 											
 											$$.reg = fresh("%t");
-											buffer.emit($$.reg + " = icmp " + processRelop(yylval.relop) + " i32 " + $1.reg + ", " + $3.reg);
+											buffer.emit($$.reg + " = icmp " + processRelop(yylval.relop) + " " + getLargestType($1.type, $3.type) + " " + $1.reg + ", " + $3.reg);
 											int location = buffer.emit("br i1 " + $$.reg + ", label @, label @");
 											$$.truelist.push_back(std::pair<int, BranchLabelIndex>(location, FIRST));
 											$$.falselist.push_back(std::pair<int, BranchLabelIndex>(location, SECOND));
@@ -767,6 +797,7 @@ int main()
 	std::stringstream s;
 	s << t.rdbuf();
 	buffer.emit(s.str());
+	buffer.emitGlobal("@divzero = internal constant [23 x i8] c\"Error division by zero\\00\"");
 	int res = yyparse();
 	manager.checkMain();
 	///*output::endScope*/();

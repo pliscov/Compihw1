@@ -1,0 +1,7 @@
+void main()
+{
+    print("Just a random trinary test");
+    print("you should get 3:");
+    int tri = 3 if (true) else 4 if (true) else 5; // Hi ^^
+    printi(tri);
+}

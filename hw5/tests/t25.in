@@ -1,0 +1,16 @@
+void main()
+{
+    print("HA! I lied this is also a while test");
+    int x = 0;
+    print("more infinite loops for you - should break after one iteration though");
+    while (true) {
+        printi(x);
+        break;
+        printi(x);
+    }
+
+    print("Make sure not to compute the incomputable");
+    int areyoubrave = (1/0) if (false) else 1;
+
+    print("YOU ARE BRAVE!");
+}

@@ -1,0 +1,44 @@
+int dumbFunc(int x, byte y)
+{
+    //print("This is dumb");
+    return (x + y) * (x + y);
+}
+
+void main()
+{
+    print("This is trenary op in loop in loop test");
+    int counter = 0;
+    while(counter < 10)
+    {
+        int sum = 0;
+        while(true)
+        {
+            sum = sum if(dumbFunc(sum - counter, 0b) >= 0) else counter;
+            if(sum >= 3)
+                break;
+            print("What is the drug dealer's favorite variable?");
+            sum = sum + 1;
+        }
+        counter = counter + 1;
+    }
+    print("SUM");
+}
+
+void dumberfuncer(){
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+    return;
+}

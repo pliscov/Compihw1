@@ -1,0 +1,8 @@
+This is a recursive function called in trenary op
+Good luck
+round 1 - OK
+Now will call recursive func in NESTED trinary
+round 2 - OK
+Now will call recursive func in double NESTED trinary
+round 3 - OK
+ok bye!

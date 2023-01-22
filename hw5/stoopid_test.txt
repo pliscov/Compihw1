@@ -1,21 +1,5 @@
 void main(){
 	int x = 3;
-	int y = 4;
-	int z = 5;
-	int a = 3*3;
-	a = 9;
-	a = 27 / 3;
-	a = 10 - 1;
-	a = 8 + 1;
-	a = a * 3;
-	a = a / a;
-	y = x + y + z;
-
-	byte sigma = 8b;
-	byte sombra;
-	byte bastion = sigma + sombra;
-	int ashe = sigma + sombra;
-	int anna = ashe + sigma;
-	int brigette = ashe + sigma + y;
-	
+	int y;
+	print("hello");	
 }

@@ -1,0 +1,12 @@
+Expecting 47
+Calling advancedFunc with params 47, 50
+Advanced funky
+got x:
+47
+got y:
+50
+Trenary op with func params incoming
+z == x
+actual result:
+47
+done

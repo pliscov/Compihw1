@@ -70,6 +70,18 @@ SymbolTable::SymbolTable(std::string scope_type, std::string ret_type)
 //     this->ret_type = other.ret_type;
 // }
 
+void ExpListClass::convertParams(std::vector<TYPEClass> formals_list){
+    CodeBuffer& buffer = CodeBuffer::instance();
+    for (int i = 0; i < formals_list.size(); i++){
+        if (list[i].type == "BYTE" && formals_list[i].type == "INT"){
+            std::string temp = list[i].reg;
+            list[i].reg = fresh("%t");
+            buffer.emit(list[i].reg + " = zext i8 " + temp + " to i32");
+            list[i].type = "INT";
+        }
+    }
+}
+
 std::string ExpListClass::getParams(){
     std::string res = "";
     for (int i = 0; i < list.size(); i++){

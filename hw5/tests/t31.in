@@ -1,0 +1,11 @@
+void main()
+{
+    print("This is another nested trenary");
+    bool x = (true if (false) else false) if (true) else false;
+    //        1        1           2          2          3
+    if(x) {
+        print("You failed!");
+    }
+    else
+        print("Good job!..... this time");
+}

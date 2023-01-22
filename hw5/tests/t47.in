@@ -1,0 +1,29 @@
+int advancedFunc(int x, int y) {
+    print("Advanced funky");
+    print("got x:");
+    printi(x);
+    print("got y:");
+    printi(y);
+    print("Trenary op with func params incoming");
+    int z = x if (true) else y;
+    if (z == x) {
+        print("z == x");
+    }
+    if (z == y) {
+        print("z == y");
+    }
+    return z;
+}
+
+bool getTrue() {
+    return true;
+}
+
+void main() {
+    print("Expecting 47");
+    print("Calling advancedFunc with params 47, 50");
+    int x = advancedFunc(47, 50);
+    print("actual result:");
+    printi(x);
+    print("done");
+}

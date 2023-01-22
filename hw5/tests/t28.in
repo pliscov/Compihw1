@@ -1,0 +1,12 @@
+void main()
+{
+    print("this is a cute single trenary op");
+    bool x = true if (true) else false;
+
+    if(x or x)
+        print("Yay");
+    if(not x)
+        print("Shame on you");
+    print("ok Bye");
+    return;
+}

@@ -1,0 +1,11 @@
+void main()
+{   print("This is another nested trenary op");
+    print("I am sick of this, are you?");                   
+    int x = (7 + 3) if(5 < 3) else (8 if (6 == 6) else 9);
+    //                 check1
+    //                                     check2
+    //                       result=8
+    print("expected res is 8 and you got: ");
+    printi(x);
+    print("Bye");
+}

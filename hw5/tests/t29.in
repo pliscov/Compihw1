@@ -1,0 +1,16 @@
+void main()
+{
+    print("This is trenary hell");
+    bool x = (true if (true) else false) if (false) else false;
+    // should be false
+
+    if(x){
+        print("Oh so sad.... you failed");
+        return;
+    }
+    else{
+        print("great job now move on");
+    }
+    return;
+}
+
