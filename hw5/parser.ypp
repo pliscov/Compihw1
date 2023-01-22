@@ -491,8 +491,7 @@ FuncID 		: ID {$$ = yylval.id;};
 ExpList 	: Exp	{
 						bphook(&$1);
 						$$.list.push_back($1);
-						cout << "list[0].reg : " << $$.list[0].reg << endl;
-						cout << "$1.reg : " << $1.reg << endl;
+						
 					}
 			| Exp COMMA ExpList		{
 										bphook(&$1);

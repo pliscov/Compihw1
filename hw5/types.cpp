@@ -73,10 +73,8 @@ SymbolTable::SymbolTable(std::string scope_type, std::string ret_type)
 std::string ExpListClass::getParams(){
     std::string res = "";
     for (int i = 0; i < list.size(); i++){
-        cout << list[i].reg << endl;
         res += getSizeByType(list[i].type) + " " + list[i].reg + ((i < list.size() - 1) ? ", " : ""); 
     }
-
     return res;
 }
 
