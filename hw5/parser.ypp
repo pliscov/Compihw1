@@ -44,7 +44,8 @@
 	void bphook(TYPEClass* exp){
 		buffer.bpatch(exp->hooklist, exp->hooklabel);
 	}
-
+	/* THE CURRENT PROBLEM IS MOSTLY PASSING ARGUMENTS TO FUNCTIONS */
+	/* other than that idk everything works so far */
 
 %}
 
@@ -151,6 +152,7 @@ FormalDecl 	: Type ID 	{
 							}
 							$$.type = $1.type;
 							$$.name = yylval.id;
+							
 							//$$.reg = fresh2(freshNum++);
 						}
 ;
