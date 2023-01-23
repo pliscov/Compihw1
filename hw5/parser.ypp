@@ -114,7 +114,7 @@ FuncsDecl 	: RetType FuncID LPAREN Formals
 
                 manager.insert(func);
 				manager.newScope("func", func->ret_type);
-				manager.insertParams($4.list);
+				manager.insertParams($4.list, true);
 				buffer.emit("define " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ") {");
 
 
@@ -153,7 +153,7 @@ FormalDecl 	: Type ID 	{
 							$$.type = $1.type;
 							$$.name = yylval.id;
 							
-							//$$.reg = fresh2(freshNum++);
+							$$.reg = fresh("%param");
 						}
 ;
 NEWSCOPE : {manager.newScope("if");};
@@ -512,7 +512,7 @@ Call 		: FuncID LPAREN 	{
 												$$.type = func->ret_type;
 												if (func->ret_type != "VOID"){
 													$$.reg = fresh("%t");
-													buffer.emit($$.reg + " = call " + getSizeByType(func->ret_type) + "@" + func->name + "()");
+													buffer.emit($$.reg + " = call " + getSizeByType(func->ret_type) + " @" + func->name + "()");
 												}
 												else
 													buffer.emit("call " + getSizeByType(func->ret_type) + "@" + func->name + "()");
@@ -693,12 +693,25 @@ Exp 		: LPAREN Exp RPAREN					{
 
 											
 											
-											$$.reg = fresh("%t");
+											$$.reg = y->reg;
 											$$.type = y->type;
-											buffer.emit($$.reg + " = load i32, i32* " + y->ptr);
-											if (y->type == "BYTE")
+
+											/*
+											if (y->isParam)
 											{
-												truncZext(&$$);	
+												$$.reg = 
+
+											}
+											*/
+											
+											if (!y->isParam)
+											{
+												$$.reg = fresh("%t");
+												buffer.emit($$.reg + " = load i32, i32* " + y->ptr);
+												if (y->type == "BYTE")
+												{
+													truncZext(&$$);	
+												}
 											}
 
 											if (y->type == "BOOL")
@@ -856,9 +869,11 @@ Exp 		: LPAREN Exp RPAREN					{
 											//bphook(&$4);
 											checkNumeral($4);
 											checkNumeral($2);
-											$$.type = std::string($2.type);
+											$$.type = $4.type;
 											$$.reg = $4.reg;
-											checkByteOverflow(&$$);
+											cast(&$$, $2.type);
+											$$.type = std::string($2.type);
+											//checkByteOverflow(&$$);
 										}
 ;
 

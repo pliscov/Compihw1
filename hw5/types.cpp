@@ -19,6 +19,7 @@ TYPEClass::TYPEClass(const TYPEClass& other)
     this->breaklist = other.breaklist;
     this->hooklist = other.hooklist;
     this->hooklabel = other.hooklabel;
+    this->isParam = other.isParam;
 }
 // FUNC //
 
@@ -128,7 +129,7 @@ TableManager::TableManager()
     insert(printi);
 }
 
-void TableManager::insertParams(std::vector<TYPEClass> params)
+void TableManager::insertParams(std::vector<TYPEClass> params, bool isParam)
 {
     int offset = -1;
     for (std::vector<TYPEClass>::iterator y = params.begin(); y < params.end(); y++)
@@ -138,7 +139,8 @@ void TableManager::insertParams(std::vector<TYPEClass> params)
             output::errorDef(yylineno, y->name);
             exit(1);
         }
-        (*y).offset = offset--;
+        y->offset = offset--;
+        y->isParam = isParam;
         tables_stack.back().table.push_back(new TYPEClass(*y));
     }
 }

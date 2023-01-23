@@ -152,8 +152,13 @@ void convertByteToInt(TYPEClass* t){
 
 void convertIntToByte(TYPEClass* t){
     if (t->type == "BYTE")
+    {
+
         return;
+    }
     CodeBuffer& buffer = CodeBuffer::instance();
+
+
     std::string temp = t->reg;
     t->reg = fresh("%t");
     buffer.emit(t->reg + " = trunc i32 " + temp + " to i8");

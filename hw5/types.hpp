@@ -12,6 +12,7 @@ class TYPEClass {
         std::string value;
         std::string name;
         std::string type;
+        std::string dynamic_type;
         std::string ptr;
         std::string reg;
         std::vector<std::pair<int, enum BranchLabelIndex>> truelist;
@@ -23,7 +24,10 @@ class TYPEClass {
         std::string hooklabel;
         std::string label;
         std::string end;
+        bool isParam = false;
         int offset;
+
+
         TYPEClass() = default;
         TYPEClass(std::string name, std::string type):
          name(name), type(type){}
@@ -97,7 +101,7 @@ class TableManager{
         bool contains(std::string symbol_name);
         bool inScope(std::string scope_type);
         bool legalReturn(std::string return_type);
-        void insertParams(std::vector<TYPEClass> params);
+        void insertParams(std::vector<TYPEClass> params, bool isParam);
         TYPEClass* get(std::string symbol_name);
 };
 
