@@ -16,6 +16,7 @@
 	extern int yylineno;
 	extern int yyleng;
 	extern char* yytext;
+	int freshNum = 0;
 	int yyerror(const char * message);
 	void zext(TYPEClass* exp1, TYPEClass* exp2)
 	{
@@ -28,10 +29,16 @@
 		}
 	}
 
-	void hook(TYPEClass* exp){
-		exp->hooklabel = fresh("exp");
+	
+
+	void hook(TYPEClass* exp, std::string prompt){
+		exp->hooklabel = fresh(prompt);
 		exp->hooklist.push_back(std::pair<int, BranchLabelIndex>(buffer.emit("br label @"), FIRST));
 		buffer.emit(exp->hooklabel + ":");
+	}
+
+	void hook(TYPEClass* exp){
+		hook(exp, "exp");
 	}
 
 	void bphook(TYPEClass* exp){
@@ -85,25 +92,30 @@ Funcs		: /*epsilon*/		{}
 ;
 FuncsDecl 	: RetType FuncID LPAREN Formals
 			{
+				//freshNum = 0;
 				if (manager.get($2) != nullptr)
 				{
 					output::errorDef(yylineno, $2);
 					exit(1);
 				}
 				FuncClass* func = new FuncClass();
+
 				func->name = $2;
 			    func->type = $1.type;
 				func->params = $4.list;
 				func->ret_type = $1.type;
+
 				if (manager.contains($2))
 				{
 					output::errorDef(yylineno, $2);
 					exit(1);
 				}
+
                 manager.insert(func);
 				manager.newScope("func", func->ret_type);
 				manager.insertParams($4.list);
 				buffer.emit("define " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ") {");
+
 
 			} RPAREN LBRACE Statements RBRACE 	
 			{
@@ -113,10 +125,9 @@ FuncsDecl 	: RetType FuncID LPAREN Formals
 					printf("bad pointer");
 					exit(1);
 				}
-
 				///*output::endScope*/();
 				manager.popScope();
-				buffer.emit("ret " + getSizeByType(func->ret_type) + initialize(func->ret_type));
+				buffer.emit("ret " + getSizeByType(func->ret_type) + " " + initialize(func->ret_type));
 				buffer.emit("}");
 			}
 ;
@@ -140,6 +151,7 @@ FormalDecl 	: Type ID 	{
 							}
 							$$.type = $1.type;
 							$$.name = yylval.id;
+							//$$.reg = fresh2(freshNum++);
 						}
 ;
 NEWSCOPE : {manager.newScope("if");};
@@ -241,11 +253,14 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 												y->ptr = fresh("%ptr");
 												buffer.emit(y->ptr + " = alloca i32");
 												std::string zextvar = fresh("%z");
+												zextvar = $5.reg;
 												////////////////////////// MAY CAUSE BUGS : ZEXT I32 TO I32 ????? /////////////
+												/*
 												if ($5.type != "INT")
 													buffer.emit(zextvar + " = zext " + getSizeByType($5.type) + " " + $5.reg + " to i32");
 												else
 													zextvar = $5.reg;
+												*/
 												buffer.emit("store i32 " + zextvar + ", i32* " + y->ptr);
 												manager.insertID(y);
 											}
@@ -312,11 +327,15 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 										}
 										else
 										{	
+											
 											std::string zextvar = fresh("%z");
+											zextvar = $4.reg;
+											/*
 											if ($4.type != "INT")
 													buffer.emit(zextvar + " = zext " + getSizeByType($4.type) + " " + $4.reg + " to i32");
 												else
 													zextvar = $4.reg;
+											*/
 											buffer.emit("store i32 " + zextvar + ", i32* " + y->ptr);
 										}
 										
@@ -397,8 +416,8 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 
 				// TODO: backpatch continues and breaks
 
-				buffer.bpatch($7.nextlist, $3.label);
-			    buffer.emit("br label %"+ $3.label); // TODO : not sure about this one
+				buffer.bpatch($7.nextlist, $3.hooklabel);
+			    buffer.emit("br label %"+ $3.hooklabel); // TODO : not sure about this one
 
 				$$.end = fresh("endlabel");
 				buffer.emit("br label %" + $$.end);
@@ -461,8 +480,13 @@ Call 		: FuncID LPAREN 	{
 													exit(1);
 												}
 												$$.type = func->ret_type;
-												$4.convertParams(func->params);
-												buffer.emit("call " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ")");
+												//$4.convertParams(func->params);
+												if (func->ret_type != "VOID"){
+													$$.reg = fresh("%t");
+													buffer.emit($$.reg + " = call " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ")");
+												}
+												else
+													buffer.emit("call " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ")");
 												
 							}
 	 		| FuncID LPAREN RPAREN				{
@@ -484,7 +508,12 @@ Call 		: FuncID LPAREN 	{
 													exit(1);
 												}
 												$$.type = func->ret_type;
-												buffer.emit("call " + getSizeByType(func->ret_type) + "@" + func->name + "()");
+												if (func->ret_type != "VOID"){
+													$$.reg = fresh("%t");
+													buffer.emit($$.reg + " = call " + getSizeByType(func->ret_type) + "@" + func->name + "()");
+												}
+												else
+													buffer.emit("call " + getSizeByType(func->ret_type) + "@" + func->name + "()");
 											}
 ;
 FuncID 		: ID {$$ = yylval.id;};
@@ -508,34 +537,53 @@ Exp 		: LPAREN Exp RPAREN					{
 													
 													$$ = $2;
 												}                  
-			| Exp IF LPAREN Exp RPAREN ELSE Exp {
-													hook(&$$);
-													buffer.bpatch($1.hooklist, $4.label);
-													buffer.bpatch($4.hooklist, $4.hooklabel);
-													buffer.bpatch($7.hooklist, $7.hooklabel);
-													checkBoolean($4);
-													if (isNumeral($1) && isNumeral($7))
+			| Exp IF LPAREN GOTO Exp RPAREN ELSE Exp %prec IF {
+													//hook(&$$);
+													//buffer.bpatch($1.hooklist, $5.label);
+													$$.label = $5.hooklabel;
+													$$.hooklabel = $5.hooklabel;
+													$$.hooklist = $1.hooklist;
+													buffer.bpatch($5.hooklist, $5.hooklabel);
+													buffer.bpatch($8.hooklist, $8.hooklabel);
+													
+													checkBoolean($5);
+													std::string truelabel = fresh("truelabel"), falselabel = fresh("falselabel"), endlabel = fresh("endlabel");
+													buffer.emit("br label %" + falselabel);
+													buffer.emit(truelabel + ":");
+													buffer.emit("br label %" + endlabel);
+													
+													buffer.emit(falselabel + ":");
+													buffer.emit("br label %" + endlabel);
+													
+													buffer.emit(endlabel + ":");
+													if (isNumeral($1) && isNumeral($8))
 													{
-														$$.type = largestType($1.type, $7.type);
-														std::string truelabel = fresh("truelabel"), falselabel = fresh("falselabel"), endlabel = fresh("endlabel");
-														buffer.emit(truelabel + " :");
-														buffer.emit("br label %" + endlabel);
-														
-														buffer.emit(falselabel + " :");
-														buffer.emit("br label %" + endlabel);
+														$$.type = largestType($1.type, $8.type);
 
-														buffer.emit(endlabel + " :");
+														//std::string truelabel = fresh("truelabel"), falselabel = fresh("falselabel"), endlabel = fresh("endlabel");
+														//buffer.emit("br label %" + truelabel);
+														//buffer.emit(truelabel + ":");
+														//buffer.emit("br label %" + endlabel);
+														//buffer.emit(falselabel + ":");
+														//buffer.emit("br label %" + endlabel);
+														//buffer.emit(endlabel + ":");
+
 														$$.reg = fresh("%t");
-														buffer.emit($$.reg + " = phi " +
-															getSizeByType($$.type) + " [" + $1.reg + ", %" + truelabel 
-															+ " ], [" + $7.reg + ", %" + falselabel + " ]"
+														/*
+														if ($$.type == "INT")
+															convertBytesToInt(&$1, &$8);
+														*/
+														buffer.emit($$.reg + " = phi i32" +
+															" [" + $1.reg + ", %" + truelabel 
+															+ " ], [" + $8.reg + ", %" + falselabel + " ]"
 														);
 
-														buffer.bpatch($4.truelist, truelabel);
-														buffer.bpatch($4.falselist, falselabel);
+														buffer.bpatch($5.truelist, $1.hooklabel);
+														buffer.bpatch($5.falselist, $8.hooklabel);
+														buffer.bpatch($4.nextlist, truelabel);
 
 													}
-													else if ($1.type != $7.type)
+													else if ($1.type != $8.type)
 													{
 														output::errorMismatch(yylineno);
 														exit(1);
@@ -544,10 +592,14 @@ Exp 		: LPAREN Exp RPAREN					{
 													{
 														$$.type = $1.type;
 														
-														buffer.bpatch($4.truelist, $1.hooklabel);
-														buffer.bpatch($4.falselist, $7.label);
-														$$.truelist = CodeBuffer::merge($1.truelist, $7.truelist);
-														$$.falselist = CodeBuffer::merge($1.falselist, $7.falselist);
+														std::string endlabel = fresh("endlabel");
+														buffer.emit("br label %" + endlabel);
+														buffer.emit(endlabel + ":");
+														buffer.bpatch($5.truelist, $1.hooklabel);
+														buffer.bpatch($5.falselist, $8.label);
+														buffer.bpatch($4.nextlist, truelabel);
+														$$.truelist = CodeBuffer::merge($1.truelist, $8.truelist);
+														$$.falselist = CodeBuffer::merge($1.falselist, $8.falselist);
 														
 													}
 													
@@ -558,7 +610,7 @@ Exp 		: LPAREN Exp RPAREN					{
 
 												}
 			| Exp ADD Exp 				{
-											hook(&$$);
+											hook(&$$, "add");
 											bphook(&$1);
 											bphook(&$3);
 											checkNumeral($1);
@@ -566,11 +618,12 @@ Exp 		: LPAREN Exp RPAREN					{
 
 											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
-											zext(&$1, &$3);
-											buffer.emit($$.reg + " = add " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
+											//zext(&$1, &$3);
+											buffer.emit($$.reg + " = add i32 " + $1.reg + ", " + $3.reg);
+											checkByteOverflow(&$$);
 										}
 			| Exp SUB Exp				{
-											hook(&$$);
+											hook(&$$, "sub");
 											bphook(&$1);
 											bphook(&$3);
 											checkNumeral($1);
@@ -578,23 +631,24 @@ Exp 		: LPAREN Exp RPAREN					{
 
 											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
-											zext(&$1, &$3);
-											buffer.emit($$.reg + " = sub " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
+											//zext(&$1, &$3);
+											buffer.emit($$.reg + " = sub i32 " + $1.reg + ", " + $3.reg);
+											checkByteOverflow(&$$);
 										}
 			| Exp DIV Exp				{
-											hook(&$$);
+											hook(&$$, "div");
 											bphook(&$1);
 											bphook(&$3);
 											checkNumeral($1);
 											checkNumeral($3);
 											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
-											zext(&$1, &$3);
-											std::string type = $$.type == "INT" ? "sdiv" : "udiv";
+											//zext(&$1, &$3);
+											std::string instr = $$.type == "INT" ? "sdiv" : "udiv";
 											std::string divzero = fresh("divzerolabel"), end_divzero = fresh("end_divzerolabel");
 											std::string temp = fresh("%t");
 
-											buffer.emit(temp + " = icmp eq " + getSizeByType($$.type) + " 0, " + $3.reg);
+											buffer.emit(temp + " = icmp eq i32 0, " + $3.reg);
 											buffer.emit("br i1 " + temp + ", label %" + divzero + ", label %" + end_divzero);
 											buffer.emit(divzero + ":");
 											std::string stringptr = fresh("%ptr");
@@ -603,23 +657,25 @@ Exp 		: LPAREN Exp RPAREN					{
 											buffer.emit("call void @exit(i32 1)");
 											buffer.emit("br label %" + end_divzero);
 											buffer.emit(end_divzero + ":");
-											buffer.emit($$.reg + " = " + type + " " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
+											buffer.emit($$.reg + " = " + instr + " i32 " + $1.reg + ", " + $3.reg);
+											checkByteOverflow(&$$);
 			
 										}
 			
 			| Exp MULT Exp				{	
-											hook(&$$);
+											hook(&$$, "mul");
 											bphook(&$1);
 											bphook(&$3);
 											checkNumeral($1);
 											checkNumeral($3);
 											$$.type = largestType($1.type, $3.type);
 											$$.reg = fresh("%t");
-											zext(&$1, &$3);
-											buffer.emit($$.reg + " = mul " + getSizeByType($$.type) + " " + $1.reg + ", " + $3.reg);
+											//zext(&$1, &$3);
+											buffer.emit($$.reg + " = mul i32 " + $1.reg + ", " + $3.reg);
+											checkByteOverflow(&$$);
 										}
 			| ID 						{
-											hook(&$$);
+											hook(&$$, "id");
 											TYPEClass* y = manager.get(yylval.id);
 
 											if (y == nullptr)
@@ -640,17 +696,15 @@ Exp 		: LPAREN Exp RPAREN					{
 											buffer.emit($$.reg + " = load i32, i32* " + y->ptr);
 											if (y->type == "BYTE")
 											{
-												std::string temp = $$.reg;
-												$$.reg = fresh("%t");
-												buffer.emit($$.reg + " = trunc i32 " + temp + " to " + getSizeByType(y->type));
+												truncZext(&$$);	
 											}
 
 											if (y->type == "BOOL")
 											{
-												std::string idlabel = fresh("idlabel");
-												buffer.emit("br label %" + idlabel);
-												$$.label = idlabel;
-												buffer.emit(idlabel + ":");
+												//std::string idlabel = fresh("idlabel");
+												//buffer.emit("br label %" + idlabel);
+												$$.label = $$.hooklabel;
+												//buffer.emit(idlabel + ":");
 
 												std::string temp = fresh("%t");
 
@@ -662,18 +716,19 @@ Exp 		: LPAREN Exp RPAREN					{
 											}
 										}
 			| Call						{
-											hook(&$$);
+											hook(&$$, "call");
 											$$.type = $1.type;
+											$$.reg = $1.reg;
 											
 
 										}
 			| NUM						{
-											hook(&$$);
+											hook(&$$, "num");
 											$$.type = "INT";
 											$$.reg = std::to_string(yylval.byte);
 										}
 			| NUM B 					{
-											hook(&$$);
+											hook(&$$, "byte");
 											$$.type = "BYTE";
 											checkByte(yylval.byte);
 											$$.reg = std::to_string(yylval.byte);
@@ -695,10 +750,12 @@ Exp 		: LPAREN Exp RPAREN					{
 											
 										}
 			| TRUE						{
+
+											hook(&$$, "true");
 											$$.label = fresh("truebool");
 											buffer.emit("br label %" + $$.label);
 											buffer.emit($$.label + ":");
-											hook(&$$);
+											
 											$$.type = "BOOL";
 											$$.reg = "true";
 											
@@ -708,10 +765,10 @@ Exp 		: LPAREN Exp RPAREN					{
 											
 										}
 			| FALSE						{
+											hook(&$$, "false");
 											$$.label = fresh("falsebool");
 											buffer.emit("br label %" + $$.label);
 											buffer.emit($$.label + ":");
-											hook(&$$);
 											$$.type = "BOOL";
 											$$.reg = "false";
 											
@@ -720,24 +777,26 @@ Exp 		: LPAREN Exp RPAREN					{
 
 										}
 			| NOT Exp					{
-											hook(&$$);
+
+											hook(&$$, "not");
 											bphook(&$2);
 											checkBoolean($2);
 											$$.type = "BOOL";
-											$$.label = $2.label;
+											$$.label = $2.hooklabel;
 											$$.truelist = $2.falselist;
 											$$.falselist = $2.truelist;
 										}
 			| Exp AND Exp				{
-											hook(&$$);
+											$$.hooklabel = $1.hooklabel;
+											//hook(&$$, "and");
 											bphook(&$1);
 											bphook(&$3);
 											checkBoolean($1);
 											checkBoolean($3);
 											$$.type = std::string("BOOL");
-											$$.label = $1.label;
+											$$.label = $1.hooklabel;
 
-											buffer.bpatch($1.truelist, $3.label);
+											buffer.bpatch($1.truelist, $3.hooklabel);
 											$$.falselist = CodeBuffer::merge($1.falselist, $3.falselist);;
 											$$.truelist = $3.truelist;
 
@@ -746,15 +805,16 @@ Exp 		: LPAREN Exp RPAREN					{
 
 										}
 			| Exp OR Exp				{
-											hook(&$$);
+											$$.hooklabel = $1.hooklabel;
+											//hook(&$$, "or");
 											bphook(&$1);
 											bphook(&$3);
 											checkBoolean($1);
 											checkBoolean($3);
 											$$.type = std::string("BOOL");
-											$$.label = $1.label;
+											$$.label = $1.hooklabel;
 											$$.truelist = CodeBuffer::merge($1.truelist, $3.truelist);
-											buffer.bpatch($1.falselist, $3.label);
+											buffer.bpatch($1.falselist, $3.hooklabel);
 											$$.falselist = $3.falselist;
 											
 											
@@ -763,9 +823,10 @@ Exp 		: LPAREN Exp RPAREN					{
 			| Exp RELOP Exp				{
 											
 											$$.label = fresh("reloplabel");
+											$$.hooklabel = $1.hooklabel;
 											buffer.emit("br label %" + $$.label);
 											buffer.emit($$.label + ":");
-											hook(&$$);
+
 											bphook(&$1);
 											bphook(&$3);
 											checkNumeral($1);
@@ -775,18 +836,27 @@ Exp 		: LPAREN Exp RPAREN					{
 
 											
 											$$.reg = fresh("%t");
-											buffer.emit($$.reg + " = icmp " + processRelop(yylval.relop) + " " + getLargestType($1.type, $3.type) + " " + $1.reg + ", " + $3.reg);
+											/*
+											if (largestType($1.type, $3.type) == "INT"){
+												convertBytesToInt(&$1, &$3);
+											}
+											*/
+											buffer.emit($$.reg + " = icmp " + processRelop(yylval.relop) + " i32 " + $1.reg + ", " + $3.reg);
 											int location = buffer.emit("br i1 " + $$.reg + ", label @, label @");
 											$$.truelist.push_back(std::pair<int, BranchLabelIndex>(location, FIRST));
 											$$.falselist.push_back(std::pair<int, BranchLabelIndex>(location, SECOND));
 											
 										}
 			| LPAREN Type RPAREN Exp	{
-											hook(&$$);
-											bphook(&$4);
+											$$.hooklabel = $4.hooklabel;
+											$$.hooklist = $4.hooklist;
+											//hook(&$$, "cast");
+											//bphook(&$4);
 											checkNumeral($4);
 											checkNumeral($2);
 											$$.type = std::string($2.type);
+											$$.reg = $4.reg;
+											checkByteOverflow(&$$);
 										}
 ;
 

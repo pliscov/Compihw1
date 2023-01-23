@@ -1,0 +1,9 @@
+void main(){
+	bool relop1 = 1 <= 2;
+	bool relop2 = 1 < 2;
+	
+	bool relop7 = relop1 and relop2;
+	if (relop7) {
+		printi(7);
+	}
+}

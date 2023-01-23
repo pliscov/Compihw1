@@ -80,7 +80,8 @@ std::string getLargestType(std::string type1, std::string type2){
     return (largestType(type1, type2) == "INT") ? "i32" : "i8";
 }
 
-std::string getSizeByType(std::string type){
+std::string getSizeByType(std::string type)
+{
     if (type == "INT")
         return "i32";
     else if (type == "BYTE")
@@ -98,7 +99,7 @@ std::string initialize(std::string type){
         return std::string("false");
     }
     else if (type == "INT" || type == "BYTE"){
-        return std::string(0);
+        return std::string("0");
     }
     else if (type == "VOID" || type == "STRING"){
         return "";
@@ -138,6 +139,57 @@ void mergeContinueBreak(TYPEClass& dest, TYPEClass src1, TYPEClass src2){
 void mergeContinueBreak(TYPEClass& dest, TYPEClass src){
     dest.continuelist = src.continuelist;
     dest.breaklist = src.breaklist;
+}
+
+void convertByteToInt(TYPEClass* t){
+    if (t->type == "INT")
+        return;
+    CodeBuffer& buffer = CodeBuffer::instance();
+    std::string temp = t->reg;
+    t->reg = fresh("%t");
+    buffer.emit(t->reg + " = zext i8 " + temp + " to i32");
+}
+
+void convertIntToByte(TYPEClass* t){
+    if (t->type == "BYTE")
+        return;
+    CodeBuffer& buffer = CodeBuffer::instance();
+    std::string temp = t->reg;
+    t->reg = fresh("%t");
+    buffer.emit(t->reg + " = trunc i32 " + temp + " to i8");
+}
+void convertBytesToInt(TYPEClass* x, TYPEClass* y){
+    convertByteToInt(x);
+    convertByteToInt(y);
+}
+
+void cast(TYPEClass* t, std::string type){
+    if (t->type == type)
+        return;
+    if (t->type == "BYTE" && type == "INT"){
+        convertByteToInt(t);
+    }
+    else if (t->type == "INT" && type == "BYTE"){
+        convertIntToByte(t);
+    }
+}
+
+void truncZext(TYPEClass* t){
+    t->type = "INT";
+    convertIntToByte(t);
+    t->type = "BYTE";
+    convertByteToInt(t);
+    t->type = "BYTE";
+}
+
+void checkByteOverflow(TYPEClass* t){
+    if (t->type == "BYTE"){
+        truncZext(t);
+    }
+}
+static int freshNum = 0;
+std::string fresh2(int num){
+    return std::string("%" + std::to_string(num));
 }
 
 #endif //_UTILS_CPP

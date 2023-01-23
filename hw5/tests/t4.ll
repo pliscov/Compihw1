@@ -21,51 +21,49 @@ define void @print(i8*) {
 }
 
 define void @main() {
-br label %exp1
-exp1:
-br label %exp2
-exp2:
-br label %exp3
-exp3:
+br label %num1
+num1:
+br label %num2
+num2:
+br label %sub1
+sub1:
 %t1 = sub i32 4, 3
 %ptr1 = alloca i32
 store i32 %t1, i32* %ptr1
 %ptr2 = getelementptr [28 x i8], [28 x i8]* @str1, i32 0, i32 0
 call void @print(i8* %ptr2)
-br label %exp4
-exp4:
+br label %id1
+id1:
 %t2 = load i32, i32* %ptr1
 call void @printi(i32 %t2)
-br label %exp5
-exp5:
+br label %id2
+id2:
 %t3 = load i32, i32* %ptr1
-br label %exp6
-exp6:
-br label %exp7
-exp7:
+br label %num3
+num3:
+br label %sub2
+sub2:
 %t4 = sub i32 %t3, 5
 %ptr3 = alloca i32
 store i32 %t4, i32* %ptr3
 %ptr4 = getelementptr [35 x i8], [35 x i8]* @str2, i32 0, i32 0
 call void @print(i8* %ptr4)
-br label %exp8
-exp8:
+br label %id3
+id3:
 %t5 = load i32, i32* %ptr3
 call void @printi(i32 %t5)
-br label %exp9
-exp9:
+br label %id4
+id4:
 %t6 = load i32, i32* %ptr3
-br label %exp10
-exp10:
-br label %exp11
-exp11:
-br label %exp12
-exp12:
+br label %num4
+num4:
+br label %num5
+num5:
+br label %sub3
+sub3:
 %t7 = sub i32 0, 4
 br label %reloplabel1
 reloplabel1:
-br label %exp13
-exp13:
 %t8 = icmp ne i32 %t6, %t7
 br i1 %t8, label %truelabel1, label %falselabel1
 br label %truelabel1
@@ -79,5 +77,5 @@ falselabel1:
 call void @print(i8* %ptr6)
 br label %endlabel1
 endlabel1:
-ret void
+ret void 
 }

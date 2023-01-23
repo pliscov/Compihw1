@@ -28,23 +28,23 @@ call void @print(i8* %ptr1)
 call void @print(i8* %ptr2)
 %ptr3 = getelementptr [19 x i8], [19 x i8]* @str3, i32 0, i32 0
 call void @print(i8* %ptr3)
-br label %exp1
-exp1:
-br label %exp2
-exp2:
-br label %exp3
-exp3:
+br label %num1
+num1:
+br label %num2
+num2:
+br label %add1
+add1:
 %t1 = add i32 1, 2
 %ptr4 = alloca i32
 store i32 %t1, i32* %ptr4
 %ptr5 = getelementptr [16 x i8], [16 x i8]* @str4, i32 0, i32 0
 call void @print(i8* %ptr5)
-br label %exp4
-exp4:
+br label %id1
+id1:
 %t2 = load i32, i32* %ptr4
 call void @printi(i32 %t2)
 %ptr6 = getelementptr [5 x i8], [5 x i8]* @str5, i32 0, i32 0
 call void @print(i8* %ptr6)
 ret void
-ret void
+ret void 
 }

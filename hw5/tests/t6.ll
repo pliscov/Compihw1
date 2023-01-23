@@ -21,38 +21,42 @@ define void @print(i8*) {
 define void @main() {
 %ptr1 = getelementptr [28 x i8], [28 x i8]* @str1, i32 0, i32 0
 call void @print(i8* %ptr1)
-br label %exp1
-exp1:
+br label %byte1
+byte1:
 %ptr2 = alloca i32
-%z1 = zext i8 100 to i32
-store i32 %z1, i32* %ptr2
-br label %exp2
-exp2:
+store i32 100, i32* %ptr2
+br label %id1
+id1:
 %t1 = load i32, i32* %ptr2
 %t2 = trunc i32 %t1 to i8
-br label %exp3
-exp3:
-%t3 = load i32, i32* %ptr2
-%t4 = trunc i32 %t3 to i8
-br label %exp4
-exp4:
-br label %exp5
-exp5:
-%t5 = add i8 %t4, 156
-br label %exp6
-exp6:
-%t7 = icmp eq i8 0, %t5
-br i1 %t7, label %divzerolabel1, label %end_divzerolabel1
+%t3 = zext i8 %t2 to i32
+br label %id2
+id2:
+%t4 = load i32, i32* %ptr2
+%t5 = trunc i32 %t4 to i8
+%t6 = zext i8 %t5 to i32
+br label %byte2
+byte2:
+br label %add1
+add1:
+%t7 = add i32 %t6, 156
+%t8 = trunc i32 %t7 to i8
+%t9 = zext i8 %t8 to i32
+br label %div1
+div1:
+%t11 = icmp eq i32 0, %t9
+br i1 %t11, label %divzerolabel1, label %end_divzerolabel1
 divzerolabel1:
 %ptr3 = getelementptr [23 x i8], [23 x i8]* @divzero, i32 0, i32 0
 call void @print(i8* %ptr3)
 call void @exit(i32 1)
 br label %end_divzerolabel1
 end_divzerolabel1:
-%t6 = udiv i8 %t2, %t5
-%z2 = zext i8 %t6 to i32
-store i32 %z2, i32* %ptr2
+%t10 = udiv i32 %t3, %t9
+%t12 = trunc i32 %t10 to i8
+%t13 = zext i8 %t12 to i32
+store i32 %t13, i32* %ptr2
 %ptr4 = getelementptr [35 x i8], [35 x i8]* @str2, i32 0, i32 0
 call void @print(i8* %ptr4)
-ret void
+ret void 
 }

@@ -1,0 +1,197 @@
+@divzero = internal constant [23 x i8] c"Error division by zero\00"
+@str1 = internal constant [37 x i8] c"Checking ternary order of operations\00"
+@str2 = internal constant [7 x i8] c"PASSED\00"
+@str3 = internal constant [7 x i8] c"FAILED\00"
+declare i32 @printf(i8*, ...)
+declare void @exit(i32)
+@.int_specifier = constant [4 x i8] c"%d\0A\00"
+@.str_specifier = constant [4 x i8] c"%s\0A\00"
+
+define void @printi(i32) {
+    %spec_ptr = getelementptr [4 x i8], [4 x i8]* @.int_specifier, i32 0, i32 0
+    call i32 (i8*, ...) @printf(i8* %spec_ptr, i32 %0)
+    ret void
+}
+
+define void @print(i8*) {
+    %spec_ptr = getelementptr [4 x i8], [4 x i8]* @.str_specifier, i32 0, i32 0
+    call i32 (i8*, ...) @printf(i8* %spec_ptr, i8* %0)
+    ret void
+}
+
+define void @main() {
+%ptr1 = getelementptr [37 x i8], [37 x i8]* @str1, i32 0, i32 0
+call void @print(i8* %ptr1)
+br label %num2
+num1:
+br label %truelabel4
+br label %num2
+num2:
+br label %num3
+num3:
+br label %reloplabel1
+reloplabel1:
+%t1 = icmp sgt i32 7, 8
+br i1 %t1, label %num1, label %num5
+br label %num5
+num4:
+br label %truelabel3
+br label %num5
+num5:
+br label %num6
+num6:
+br label %reloplabel2
+reloplabel2:
+%t2 = icmp sgt i32 10, 9
+br i1 %t2, label %num4, label %num8
+br label %num8
+num7:
+br label %truelabel2
+br label %num8
+num8:
+br label %num9
+num9:
+br label %reloplabel3
+reloplabel3:
+%t3 = icmp ne i32 6, 6
+br i1 %t3, label %num7, label %num11
+br label %num11
+num10:
+br label %truelabel1
+br label %num11
+num11:
+br label %num12
+num12:
+br label %reloplabel4
+reloplabel4:
+%t4 = icmp eq i32 6, 6
+br i1 %t4, label %num10, label %num13
+br label %num13
+num13:
+br label %falselabel1
+truelabel1:
+br label %endlabel1
+falselabel1:
+br label %endlabel1
+endlabel1:
+%t5 = phi i32 [3, %truelabel1 ], [4, %falselabel1 ]
+br label %falselabel2
+truelabel2:
+br label %endlabel2
+falselabel2:
+br label %endlabel2
+endlabel2:
+%t6 = phi i32 [2, %truelabel2 ], [%t5, %falselabel2 ]
+br label %falselabel3
+truelabel3:
+br label %endlabel3
+falselabel3:
+br label %endlabel3
+endlabel3:
+%t7 = phi i32 [1, %truelabel3 ], [%t6, %falselabel3 ]
+br label %falselabel4
+truelabel4:
+br label %endlabel4
+falselabel4:
+br label %endlabel4
+endlabel4:
+%t8 = phi i32 [0, %truelabel4 ], [%t7, %falselabel4 ]
+%ptr2 = alloca i32
+store i32 %t8, i32* %ptr2
+br label %num15
+num14:
+br label %truelabel8
+br label %num15
+num15:
+br label %num16
+num16:
+br label %reloplabel5
+reloplabel5:
+%t9 = icmp sgt i32 7, 8
+br i1 %t9, label %num14, label %num18
+br label %num18
+num17:
+br label %truelabel7
+br label %num18
+num18:
+br label %num19
+num19:
+br label %reloplabel6
+reloplabel6:
+%t10 = icmp sgt i32 10, 9
+br i1 %t10, label %num17, label %num21
+br label %num21
+num20:
+br label %truelabel6
+br label %num21
+num21:
+br label %num22
+num22:
+br label %reloplabel7
+reloplabel7:
+%t11 = icmp ne i32 6, 6
+br i1 %t11, label %num20, label %num24
+br label %num24
+num23:
+br label %truelabel5
+br label %num24
+num24:
+br label %num25
+num25:
+br label %reloplabel8
+reloplabel8:
+%t12 = icmp eq i32 6, 6
+br i1 %t12, label %num23, label %num26
+br label %num26
+num26:
+br label %falselabel5
+truelabel5:
+br label %endlabel5
+falselabel5:
+br label %endlabel5
+endlabel5:
+%t13 = phi i32 [3, %truelabel5 ], [4, %falselabel5 ]
+br label %falselabel6
+truelabel6:
+br label %endlabel6
+falselabel6:
+br label %endlabel6
+endlabel6:
+%t14 = phi i32 [2, %truelabel6 ], [%t13, %falselabel6 ]
+br label %falselabel7
+truelabel7:
+br label %endlabel7
+falselabel7:
+br label %endlabel7
+endlabel7:
+%t15 = phi i32 [1, %truelabel7 ], [%t14, %falselabel7 ]
+br label %falselabel8
+truelabel8:
+br label %endlabel8
+falselabel8:
+br label %endlabel8
+endlabel8:
+%t16 = phi i32 [0, %truelabel8 ], [%t15, %falselabel8 ]
+%ptr3 = alloca i32
+store i32 %t16, i32* %ptr3
+br label %id1
+id1:
+%t17 = load i32, i32* %ptr2
+br label %id2
+id2:
+%t18 = load i32, i32* %ptr3
+br label %reloplabel9
+reloplabel9:
+%t19 = icmp eq i32 %t17, %t18
+br i1 %t19, label %truelabel9, label %endlabel9
+br label %truelabel9
+truelabel9:
+%ptr4 = getelementptr [7 x i8], [7 x i8]* @str2, i32 0, i32 0
+call void @print(i8* %ptr4)
+ret void
+br label %endlabel9
+endlabel9:
+%ptr5 = getelementptr [7 x i8], [7 x i8]* @str3, i32 0, i32 0
+call void @print(i8* %ptr5)
+ret void 
+}

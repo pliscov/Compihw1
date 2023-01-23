@@ -13,6 +13,12 @@ TYPEClass::TYPEClass(const TYPEClass& other)
     this->reg = std::string(other.reg);
     this->ptr = std::string(other.ptr);
     this->offset = other.offset;
+    this->truelist = other.truelist;
+    this->falselist = other.falselist;
+    this->continuelist = other.continuelist;
+    this->breaklist = other.breaklist;
+    this->hooklist = other.hooklist;
+    this->hooklabel = other.hooklabel;
 }
 // FUNC //
 
@@ -84,8 +90,10 @@ void ExpListClass::convertParams(std::vector<TYPEClass> formals_list){
 
 std::string ExpListClass::getParams(){
     std::string res = "";
+    std::string type;
     for (int i = 0; i < list.size(); i++){
-        res += getSizeByType(list[i].type) + " " + list[i].reg + ((i < list.size() - 1) ? ", " : ""); 
+        type = getSizeByType(list[i].type) == "i8" ? "i32" : getSizeByType(list[i].type);
+        res += type + " " + list[i].reg + ((i < list.size() - 1) ? ", " : ""); 
     }
     return res;
 }

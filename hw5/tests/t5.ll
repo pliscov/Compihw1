@@ -23,303 +23,344 @@ define void @main() {
 call void @print(i8* %ptr1)
 %ptr2 = getelementptr [48 x i8], [48 x i8]* @str2, i32 0, i32 0
 call void @print(i8* %ptr2)
-br label %exp1
-exp1:
+br label %byte1
+byte1:
 %ptr3 = alloca i32
-%z1 = zext i8 1 to i32
-store i32 %z1, i32* %ptr3
-br label %exp2
-exp2:
+store i32 1, i32* %ptr3
+br label %id1
+id1:
 %t1 = load i32, i32* %ptr3
 %t2 = trunc i32 %t1 to i8
 %t3 = zext i8 %t2 to i32
 call void @printi(i32 %t3)
-br label %exp3
-exp3:
+br label %id2
+id2:
 %t4 = load i32, i32* %ptr3
 %t5 = trunc i32 %t4 to i8
-br label %exp4
-exp4:
-%t6 = load i32, i32* %ptr3
-%t7 = trunc i32 %t6 to i8
-br label %exp5
-exp5:
-%t8 = add i8 %t5, %t7
-%z2 = zext i8 %t8 to i32
-store i32 %z2, i32* %ptr3
-br label %exp6
-exp6:
-%t9 = load i32, i32* %ptr3
-%t10 = trunc i32 %t9 to i8
-%t11 = zext i8 %t10 to i32
-call void @printi(i32 %t11)
-br label %exp7
-exp7:
-%t12 = load i32, i32* %ptr3
-%t13 = trunc i32 %t12 to i8
-br label %exp8
-exp8:
-br label %exp9
-exp9:
-%t14 = sub i8 %t13, 1
-%z3 = zext i8 %t14 to i32
-store i32 %z3, i32* %ptr3
-br label %exp10
-exp10:
-%t15 = load i32, i32* %ptr3
-%t16 = trunc i32 %t15 to i8
-%t17 = zext i8 %t16 to i32
-call void @printi(i32 %t17)
-br label %exp11
-exp11:
-%t18 = load i32, i32* %ptr3
-%t19 = trunc i32 %t18 to i8
-br label %exp12
-exp12:
-%t20 = load i32, i32* %ptr3
-%t21 = trunc i32 %t20 to i8
-br label %exp13
-exp13:
-%t22 = add i8 %t19, %t21
-%z4 = zext i8 %t22 to i32
-store i32 %z4, i32* %ptr3
-br label %exp14
-exp14:
-%t23 = load i32, i32* %ptr3
-%t24 = trunc i32 %t23 to i8
-%t25 = zext i8 %t24 to i32
-call void @printi(i32 %t25)
-br label %exp15
-exp15:
-%t26 = load i32, i32* %ptr3
-%t27 = trunc i32 %t26 to i8
-br label %exp16
-exp16:
+%t6 = zext i8 %t5 to i32
+br label %id3
+id3:
+%t7 = load i32, i32* %ptr3
+%t8 = trunc i32 %t7 to i8
+%t9 = zext i8 %t8 to i32
+br label %add1
+add1:
+%t10 = add i32 %t6, %t9
+%t11 = trunc i32 %t10 to i8
+%t12 = zext i8 %t11 to i32
+store i32 %t12, i32* %ptr3
+br label %id4
+id4:
+%t13 = load i32, i32* %ptr3
+%t14 = trunc i32 %t13 to i8
+%t15 = zext i8 %t14 to i32
+call void @printi(i32 %t15)
+br label %id5
+id5:
+%t16 = load i32, i32* %ptr3
+%t17 = trunc i32 %t16 to i8
+%t18 = zext i8 %t17 to i32
+br label %byte2
+byte2:
+br label %sub1
+sub1:
+%t19 = sub i32 %t18, 1
+%t20 = trunc i32 %t19 to i8
+%t21 = zext i8 %t20 to i32
+store i32 %t21, i32* %ptr3
+br label %id6
+id6:
+%t22 = load i32, i32* %ptr3
+%t23 = trunc i32 %t22 to i8
+%t24 = zext i8 %t23 to i32
+call void @printi(i32 %t24)
+br label %id7
+id7:
+%t25 = load i32, i32* %ptr3
+%t26 = trunc i32 %t25 to i8
+%t27 = zext i8 %t26 to i32
+br label %id8
+id8:
 %t28 = load i32, i32* %ptr3
 %t29 = trunc i32 %t28 to i8
-br label %exp17
-exp17:
-%t30 = add i8 %t27, %t29
-%z5 = zext i8 %t30 to i32
-store i32 %z5, i32* %ptr3
-br label %exp18
-exp18:
-%t31 = load i32, i32* %ptr3
+%t30 = zext i8 %t29 to i32
+br label %add2
+add2:
+%t31 = add i32 %t27, %t30
 %t32 = trunc i32 %t31 to i8
 %t33 = zext i8 %t32 to i32
-call void @printi(i32 %t33)
-br label %exp19
-exp19:
+store i32 %t33, i32* %ptr3
+br label %id9
+id9:
 %t34 = load i32, i32* %ptr3
 %t35 = trunc i32 %t34 to i8
-br label %exp20
-exp20:
-%t36 = load i32, i32* %ptr3
-%t37 = trunc i32 %t36 to i8
-br label %exp21
-exp21:
-%t38 = add i8 %t35, %t37
-%z6 = zext i8 %t38 to i32
-store i32 %z6, i32* %ptr3
-br label %exp22
-exp22:
-%t39 = load i32, i32* %ptr3
-%t40 = trunc i32 %t39 to i8
-%t41 = zext i8 %t40 to i32
-call void @printi(i32 %t41)
-br label %exp23
-exp23:
-%t42 = load i32, i32* %ptr3
-%t43 = trunc i32 %t42 to i8
-br label %exp24
-exp24:
-br label %exp25
-exp25:
-%t45 = icmp eq i8 0, 2
-br i1 %t45, label %divzerolabel1, label %end_divzerolabel1
+%t36 = zext i8 %t35 to i32
+call void @printi(i32 %t36)
+br label %id10
+id10:
+%t37 = load i32, i32* %ptr3
+%t38 = trunc i32 %t37 to i8
+%t39 = zext i8 %t38 to i32
+br label %id11
+id11:
+%t40 = load i32, i32* %ptr3
+%t41 = trunc i32 %t40 to i8
+%t42 = zext i8 %t41 to i32
+br label %add3
+add3:
+%t43 = add i32 %t39, %t42
+%t44 = trunc i32 %t43 to i8
+%t45 = zext i8 %t44 to i32
+store i32 %t45, i32* %ptr3
+br label %id12
+id12:
+%t46 = load i32, i32* %ptr3
+%t47 = trunc i32 %t46 to i8
+%t48 = zext i8 %t47 to i32
+call void @printi(i32 %t48)
+br label %id13
+id13:
+%t49 = load i32, i32* %ptr3
+%t50 = trunc i32 %t49 to i8
+%t51 = zext i8 %t50 to i32
+br label %id14
+id14:
+%t52 = load i32, i32* %ptr3
+%t53 = trunc i32 %t52 to i8
+%t54 = zext i8 %t53 to i32
+br label %add4
+add4:
+%t55 = add i32 %t51, %t54
+%t56 = trunc i32 %t55 to i8
+%t57 = zext i8 %t56 to i32
+store i32 %t57, i32* %ptr3
+br label %id15
+id15:
+%t58 = load i32, i32* %ptr3
+%t59 = trunc i32 %t58 to i8
+%t60 = zext i8 %t59 to i32
+call void @printi(i32 %t60)
+br label %id16
+id16:
+%t61 = load i32, i32* %ptr3
+%t62 = trunc i32 %t61 to i8
+%t63 = zext i8 %t62 to i32
+br label %byte3
+byte3:
+br label %div1
+div1:
+%t65 = icmp eq i32 0, 2
+br i1 %t65, label %divzerolabel1, label %end_divzerolabel1
 divzerolabel1:
 %ptr4 = getelementptr [23 x i8], [23 x i8]* @divzero, i32 0, i32 0
 call void @print(i8* %ptr4)
 call void @exit(i32 1)
 br label %end_divzerolabel1
 end_divzerolabel1:
-%t44 = udiv i8 %t43, 2
-%z7 = zext i8 %t44 to i32
-store i32 %z7, i32* %ptr3
-br label %exp26
-exp26:
-%t46 = load i32, i32* %ptr3
-%t47 = trunc i32 %t46 to i8
-%t48 = zext i8 %t47 to i32
-call void @printi(i32 %t48)
-br label %exp27
-exp27:
-%t49 = load i32, i32* %ptr3
-%t50 = trunc i32 %t49 to i8
-br label %exp28
-exp28:
-%t51 = load i32, i32* %ptr3
-%t52 = trunc i32 %t51 to i8
-br label %exp29
-exp29:
-%t53 = add i8 %t50, %t52
-%z8 = zext i8 %t53 to i32
-store i32 %z8, i32* %ptr3
-br label %exp30
-exp30:
-%t54 = load i32, i32* %ptr3
-%t55 = trunc i32 %t54 to i8
-%t56 = zext i8 %t55 to i32
-call void @printi(i32 %t56)
-br label %exp31
-exp31:
-%t57 = load i32, i32* %ptr3
-%t58 = trunc i32 %t57 to i8
-br label %exp32
-exp32:
-%t59 = load i32, i32* %ptr3
-%t60 = trunc i32 %t59 to i8
-br label %exp33
-exp33:
-%t61 = add i8 %t58, %t60
-%z9 = zext i8 %t61 to i32
-store i32 %z9, i32* %ptr3
-br label %exp34
-exp34:
-%t62 = load i32, i32* %ptr3
-%t63 = trunc i32 %t62 to i8
-%t64 = zext i8 %t63 to i32
-call void @printi(i32 %t64)
-br label %exp35
-exp35:
-%t65 = load i32, i32* %ptr3
-%t66 = trunc i32 %t65 to i8
-br label %exp36
-exp36:
-%t67 = load i32, i32* %ptr3
-%t68 = trunc i32 %t67 to i8
-br label %exp37
-exp37:
-%t69 = add i8 %t66, %t68
-%z10 = zext i8 %t69 to i32
-store i32 %z10, i32* %ptr3
-br label %exp38
-exp38:
-%t70 = load i32, i32* %ptr3
-%t71 = trunc i32 %t70 to i8
-%t72 = zext i8 %t71 to i32
-call void @printi(i32 %t72)
-br label %exp39
-exp39:
-%t73 = load i32, i32* %ptr3
-%t74 = trunc i32 %t73 to i8
-br label %exp40
-exp40:
-%t75 = load i32, i32* %ptr3
-%t76 = trunc i32 %t75 to i8
-br label %exp41
-exp41:
-%t77 = add i8 %t74, %t76
-%z11 = zext i8 %t77 to i32
-store i32 %z11, i32* %ptr3
-br label %exp42
-exp42:
-%t78 = load i32, i32* %ptr3
-%t79 = trunc i32 %t78 to i8
-%t80 = zext i8 %t79 to i32
-call void @printi(i32 %t80)
-br label %exp43
-exp43:
-%t81 = load i32, i32* %ptr3
-%t82 = trunc i32 %t81 to i8
-br label %exp44
-exp44:
-br label %exp45
-exp45:
-%t83 = mul i8 %t82, 1
-%z12 = zext i8 %t83 to i32
-store i32 %z12, i32* %ptr3
-br label %exp46
-exp46:
-%t84 = load i32, i32* %ptr3
-%t85 = trunc i32 %t84 to i8
-%t86 = zext i8 %t85 to i32
-call void @printi(i32 %t86)
-br label %exp47
-exp47:
-%t87 = load i32, i32* %ptr3
-%t88 = trunc i32 %t87 to i8
-br label %exp48
-exp48:
-%t89 = load i32, i32* %ptr3
+%t64 = udiv i32 %t63, 2
+%t66 = trunc i32 %t64 to i8
+%t67 = zext i8 %t66 to i32
+store i32 %t67, i32* %ptr3
+br label %id17
+id17:
+%t68 = load i32, i32* %ptr3
+%t69 = trunc i32 %t68 to i8
+%t70 = zext i8 %t69 to i32
+call void @printi(i32 %t70)
+br label %id18
+id18:
+%t71 = load i32, i32* %ptr3
+%t72 = trunc i32 %t71 to i8
+%t73 = zext i8 %t72 to i32
+br label %id19
+id19:
+%t74 = load i32, i32* %ptr3
+%t75 = trunc i32 %t74 to i8
+%t76 = zext i8 %t75 to i32
+br label %add5
+add5:
+%t77 = add i32 %t73, %t76
+%t78 = trunc i32 %t77 to i8
+%t79 = zext i8 %t78 to i32
+store i32 %t79, i32* %ptr3
+br label %id20
+id20:
+%t80 = load i32, i32* %ptr3
+%t81 = trunc i32 %t80 to i8
+%t82 = zext i8 %t81 to i32
+call void @printi(i32 %t82)
+br label %id21
+id21:
+%t83 = load i32, i32* %ptr3
+%t84 = trunc i32 %t83 to i8
+%t85 = zext i8 %t84 to i32
+br label %id22
+id22:
+%t86 = load i32, i32* %ptr3
+%t87 = trunc i32 %t86 to i8
+%t88 = zext i8 %t87 to i32
+br label %add6
+add6:
+%t89 = add i32 %t85, %t88
 %t90 = trunc i32 %t89 to i8
-br label %exp49
-exp49:
-%t91 = add i8 %t88, %t90
-%z13 = zext i8 %t91 to i32
-store i32 %z13, i32* %ptr3
-br label %exp50
-exp50:
+%t91 = zext i8 %t90 to i32
+store i32 %t91, i32* %ptr3
+br label %id23
+id23:
 %t92 = load i32, i32* %ptr3
 %t93 = trunc i32 %t92 to i8
 %t94 = zext i8 %t93 to i32
 call void @printi(i32 %t94)
-br label %exp51
-exp51:
+br label %id24
+id24:
 %t95 = load i32, i32* %ptr3
 %t96 = trunc i32 %t95 to i8
-br label %exp52
-exp52:
-%t97 = load i32, i32* %ptr3
-%t98 = trunc i32 %t97 to i8
-br label %exp53
-exp53:
-%t99 = add i8 %t96, %t98
-%z14 = zext i8 %t99 to i32
-store i32 %z14, i32* %ptr3
-br label %exp54
-exp54:
-%t100 = load i32, i32* %ptr3
-%t101 = trunc i32 %t100 to i8
-%t102 = zext i8 %t101 to i32
-call void @printi(i32 %t102)
-br label %exp55
-exp55:
-%t103 = load i32, i32* %ptr3
-%t104 = trunc i32 %t103 to i8
-br label %exp56
-exp56:
-%t105 = load i32, i32* %ptr3
-%t106 = trunc i32 %t105 to i8
-br label %exp57
-exp57:
-%t107 = add i8 %t104, %t106
-%z15 = zext i8 %t107 to i32
-store i32 %z15, i32* %ptr3
-br label %exp58
-exp58:
-%t108 = load i32, i32* %ptr3
-%t109 = trunc i32 %t108 to i8
-%t110 = zext i8 %t109 to i32
-call void @printi(i32 %t110)
-br label %exp59
-exp59:
-%t111 = load i32, i32* %ptr3
-%t112 = trunc i32 %t111 to i8
-br label %exp60
-exp60:
-%t113 = load i32, i32* %ptr3
+%t97 = zext i8 %t96 to i32
+br label %id25
+id25:
+%t98 = load i32, i32* %ptr3
+%t99 = trunc i32 %t98 to i8
+%t100 = zext i8 %t99 to i32
+br label %add7
+add7:
+%t101 = add i32 %t97, %t100
+%t102 = trunc i32 %t101 to i8
+%t103 = zext i8 %t102 to i32
+store i32 %t103, i32* %ptr3
+br label %id26
+id26:
+%t104 = load i32, i32* %ptr3
+%t105 = trunc i32 %t104 to i8
+%t106 = zext i8 %t105 to i32
+call void @printi(i32 %t106)
+br label %id27
+id27:
+%t107 = load i32, i32* %ptr3
+%t108 = trunc i32 %t107 to i8
+%t109 = zext i8 %t108 to i32
+br label %id28
+id28:
+%t110 = load i32, i32* %ptr3
+%t111 = trunc i32 %t110 to i8
+%t112 = zext i8 %t111 to i32
+br label %add8
+add8:
+%t113 = add i32 %t109, %t112
 %t114 = trunc i32 %t113 to i8
-br label %exp61
-exp61:
-%t115 = add i8 %t112, %t114
-%z16 = zext i8 %t115 to i32
-store i32 %z16, i32* %ptr3
-br label %exp62
-exp62:
+%t115 = zext i8 %t114 to i32
+store i32 %t115, i32* %ptr3
+br label %id29
+id29:
 %t116 = load i32, i32* %ptr3
 %t117 = trunc i32 %t116 to i8
 %t118 = zext i8 %t117 to i32
 call void @printi(i32 %t118)
-ret void
+br label %id30
+id30:
+%t119 = load i32, i32* %ptr3
+%t120 = trunc i32 %t119 to i8
+%t121 = zext i8 %t120 to i32
+br label %byte4
+byte4:
+br label %mul1
+mul1:
+%t122 = mul i32 %t121, 1
+%t123 = trunc i32 %t122 to i8
+%t124 = zext i8 %t123 to i32
+store i32 %t124, i32* %ptr3
+br label %id31
+id31:
+%t125 = load i32, i32* %ptr3
+%t126 = trunc i32 %t125 to i8
+%t127 = zext i8 %t126 to i32
+call void @printi(i32 %t127)
+br label %id32
+id32:
+%t128 = load i32, i32* %ptr3
+%t129 = trunc i32 %t128 to i8
+%t130 = zext i8 %t129 to i32
+br label %id33
+id33:
+%t131 = load i32, i32* %ptr3
+%t132 = trunc i32 %t131 to i8
+%t133 = zext i8 %t132 to i32
+br label %add9
+add9:
+%t134 = add i32 %t130, %t133
+%t135 = trunc i32 %t134 to i8
+%t136 = zext i8 %t135 to i32
+store i32 %t136, i32* %ptr3
+br label %id34
+id34:
+%t137 = load i32, i32* %ptr3
+%t138 = trunc i32 %t137 to i8
+%t139 = zext i8 %t138 to i32
+call void @printi(i32 %t139)
+br label %id35
+id35:
+%t140 = load i32, i32* %ptr3
+%t141 = trunc i32 %t140 to i8
+%t142 = zext i8 %t141 to i32
+br label %id36
+id36:
+%t143 = load i32, i32* %ptr3
+%t144 = trunc i32 %t143 to i8
+%t145 = zext i8 %t144 to i32
+br label %add10
+add10:
+%t146 = add i32 %t142, %t145
+%t147 = trunc i32 %t146 to i8
+%t148 = zext i8 %t147 to i32
+store i32 %t148, i32* %ptr3
+br label %id37
+id37:
+%t149 = load i32, i32* %ptr3
+%t150 = trunc i32 %t149 to i8
+%t151 = zext i8 %t150 to i32
+call void @printi(i32 %t151)
+br label %id38
+id38:
+%t152 = load i32, i32* %ptr3
+%t153 = trunc i32 %t152 to i8
+%t154 = zext i8 %t153 to i32
+br label %id39
+id39:
+%t155 = load i32, i32* %ptr3
+%t156 = trunc i32 %t155 to i8
+%t157 = zext i8 %t156 to i32
+br label %add11
+add11:
+%t158 = add i32 %t154, %t157
+%t159 = trunc i32 %t158 to i8
+%t160 = zext i8 %t159 to i32
+store i32 %t160, i32* %ptr3
+br label %id40
+id40:
+%t161 = load i32, i32* %ptr3
+%t162 = trunc i32 %t161 to i8
+%t163 = zext i8 %t162 to i32
+call void @printi(i32 %t163)
+br label %id41
+id41:
+%t164 = load i32, i32* %ptr3
+%t165 = trunc i32 %t164 to i8
+%t166 = zext i8 %t165 to i32
+br label %id42
+id42:
+%t167 = load i32, i32* %ptr3
+%t168 = trunc i32 %t167 to i8
+%t169 = zext i8 %t168 to i32
+br label %add12
+add12:
+%t170 = add i32 %t166, %t169
+%t171 = trunc i32 %t170 to i8
+%t172 = zext i8 %t171 to i32
+store i32 %t172, i32* %ptr3
+br label %id43
+id43:
+%t173 = load i32, i32* %ptr3
+%t174 = trunc i32 %t173 to i8
+%t175 = zext i8 %t174 to i32
+call void @printi(i32 %t175)
+ret void 
 }

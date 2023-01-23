@@ -26,7 +26,13 @@ std::string processRelop(std::string relop);
 std::string fresh(std::string label);
 void mergeContinueBreak(TYPEClass& dest, TYPEClass src1, TYPEClass src2);
 void mergeContinueBreak(TYPEClass& dest, TYPEClass src);
-
+void convertByteToInt(TYPEClass* t);
+void convertBytesToInt(TYPEClass* x, TYPEClass* y);
+void convertIntToByte(TYPEClass* t);
+void cast(TYPEClass* t, std::string type);
+void truncZext(TYPEClass* t);
+void checkByteOverflow(TYPEClass* t);
+std::string fresh2(int num);
 
 
 

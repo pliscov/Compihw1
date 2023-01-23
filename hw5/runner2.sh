@@ -47,9 +47,11 @@ while [ $i -le $lasttest ]
 	if [[ $? != 0 ]] 
 		then
 			echo "Failed!"
-			exit
 		fi
-	echo "[OK]"
+	if [[ $? == 0 ]]
+		then
+			echo "[OK]"
+		fi
 	i=$[$i+1]
 done 
 
