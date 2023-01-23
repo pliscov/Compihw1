@@ -100,6 +100,9 @@ std::string ExpListClass::getParams(){
             buffer.bpatch(list[i].truelist , list[i+1].hooklabel);
             buffer.bpatch(list[i].falselist , list[i+1].hooklabel);
         }
+        if (i >= 1 && i < list.size() - 1){
+            buffer.bpatch(list[i].hooklist, list[i+1].hooklabel);
+        }
     }
     return res;
 }

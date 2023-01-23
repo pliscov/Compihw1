@@ -340,7 +340,15 @@ Statement 	: LBRACE {manager.newScope("regular");} Statements RBRACE
 										
 									}
 			| Call SC				{
-										bphook(&$1);			
+										bphook(&$1);
+										if ($1.type == "BOOL")
+										{
+											std::string aftercall = fresh("aftercall");
+											buffer.emit("br label %" + aftercall);
+											buffer.emit(aftercall + ":");
+											buffer.bpatch($1.truelist, aftercall);
+											buffer.bpatch($1.falselist, aftercall);
+										}
 									}
 			| RETURN SC				{	
 										/* check void ret type */
@@ -483,8 +491,7 @@ Call 		: FuncID LPAREN 	{
 												}
 								}   ExpList RPAREN	
 								{
-												$$.hooklabel = $4.list[0].hooklabel;
-												$$.hooklist = $4.list[0].hooklist;
+												
 												FuncClass* func = dynamic_cast<FuncClass*>(manager.get($1));
 											
 												if (func == nullptr)
@@ -502,15 +509,51 @@ Call 		: FuncID LPAREN 	{
 													output::errorPrototypeMismatch(yylineno, func->name, types);
 													exit(1);
 												}
+
+												$$.hooklabel = $4.list[0].hooklabel;
+												$$.hooklist = $4.list[0].hooklist;
 												$$.type = func->ret_type;
+												std::string paramResol = fresh("paramResol");
+												buffer.emit("br label %" + paramResol);
+												for (int i = 0; i < $4.list.size(); i++)
+												{
+													if ($4.list[i].type == "BOOL")
+													{
+														std::string truelabel = fresh("true"), falselabel = fresh("false"), endlabel = fresh("end");
+														buffer.emit("br label %" + truelabel);
+														buffer.emit(truelabel + ":");
+
+														buffer.emit("br label %" + endlabel);
+														buffer.emit(falselabel + ":");
+
+														buffer.emit("br label %" + endlabel);
+														buffer.emit(endlabel + ":");
+														$4.list[i].reg = fresh("%t");
+														buffer.emit($4.list[i].reg + " = phi i1 [1, %" + truelabel + "], [0, %" + falselabel + "]");
+														
+														buffer.bpatch($4.list[i].truelist, truelabel);
+														buffer.bpatch($4.list[i].falselist, falselabel);
+													}
+													if (i < $4.list.size() - 1)
+													{
+														buffer.emit("br label %" + $4.list[i+1].hooklabel);
+													}
+													
+														
+												}
+												buffer.emit("br label %" + paramResol);
+												buffer.emit(paramResol + ":");
 												$4.convertParams(func->params);
-												if ($4.list[$4.list.size() - 1].type == "BOOL"){
+												/*
+												if ($4.list[$4.list.size() - 1].type == "BOOL")
+												{
 													std::string endboollabel = fresh("endboollabel");
 													buffer.emit("br label %" + endboollabel);
 													buffer.emit(endboollabel + ":");
 													buffer.bpatch($4.list[$4.list.size() - 1].truelist, endboollabel);
 													buffer.bpatch($4.list[$4.list.size() - 1].falselist, endboollabel);
 												}
+												*/
 												if (func->ret_type != "VOID"){
 													$$.reg = fresh("%t");
 													buffer.emit($$.reg + " = call " + getSizeByType(func->ret_type) + " @" + func->name + "(" + $4.getParams() + ")");
@@ -884,9 +927,10 @@ Exp 		: LPAREN Exp RPAREN					{
 
 										}
 			| NOT Exp					{
-
-											hook(&$$, "not");
-											bphook(&$2);
+											$$.hooklabel = $2.hooklabel;
+											$$.hooklist = $2.hooklist;
+											//hook(&$$, "not");
+											//bphook(&$2);
 											checkBoolean($2);
 											$$.type = "BOOL";
 											$$.label = $2.hooklabel;
