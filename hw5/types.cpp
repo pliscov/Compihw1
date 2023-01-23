@@ -92,9 +92,14 @@ void ExpListClass::convertParams(std::vector<TYPEClass> formals_list){
 std::string ExpListClass::getParams(){
     std::string res = "";
     std::string type;
+    CodeBuffer& buffer = CodeBuffer::instance();
     for (int i = 0; i < list.size(); i++){
-        type = getSizeByType(list[i].type) == "i8" ? "i32" : getSizeByType(list[i].type);
+        type = getSizeByType(list[i].type);// == "i8" ? "i32" : getSizeByType(list[i].type);
         res += type + " " + list[i].reg + ((i < list.size() - 1) ? ", " : ""); 
+        if (/*i >= 1 && */i < list.size() - 1 && list[i].type == "BOOL"){
+            buffer.bpatch(list[i].truelist , list[i+1].hooklabel);
+            buffer.bpatch(list[i].falselist , list[i+1].hooklabel);
+        }
     }
     return res;
 }
@@ -266,4 +271,18 @@ bool TableManager::legalReturn(std::string return_type)
         }
     }
     return false;
+}
+
+std::string TableManager::getReturnType()
+{
+    for (std::vector<SymbolTable>::iterator scope = tables_stack.end() - 1; scope >= tables_stack.begin(); scope--) 
+    {
+        if (scope->scope_type == "func")
+        {
+            return scope->ret_type;
+        }
+    }
+    cout << "BAD GET RETURN TYPEEEEEE" << endl;
+    return "BAD";
+
 }

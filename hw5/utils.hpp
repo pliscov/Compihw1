@@ -29,9 +29,12 @@ void mergeContinueBreak(TYPEClass& dest, TYPEClass src);
 void convertByteToInt(TYPEClass* t);
 void convertBytesToInt(TYPEClass* x, TYPEClass* y);
 void convertIntToByte(TYPEClass* t);
+void convertIntToBool(TYPEClass* t);
+void convertBoolToInt(TYPEClass* t);
 void cast(TYPEClass* t, std::string type);
 void truncZext(TYPEClass* t);
 void checkByteOverflow(TYPEClass* t);
+void implicitCast(TYPEClass* t, std::string type);
 std::string fresh2(int num);
 
 

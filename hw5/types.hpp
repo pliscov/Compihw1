@@ -101,6 +101,7 @@ class TableManager{
         bool contains(std::string symbol_name);
         bool inScope(std::string scope_type);
         bool legalReturn(std::string return_type);
+        std::string getReturnType();
         void insertParams(std::vector<TYPEClass> params, bool isParam);
         TYPEClass* get(std::string symbol_name);
 };

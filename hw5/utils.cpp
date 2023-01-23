@@ -147,22 +147,44 @@ void convertByteToInt(TYPEClass* t){
     CodeBuffer& buffer = CodeBuffer::instance();
     std::string temp = t->reg;
     t->reg = fresh("%t");
+    t->type = "INT";
     buffer.emit(t->reg + " = zext i8 " + temp + " to i32");
 }
 
 void convertIntToByte(TYPEClass* t){
     if (t->type == "BYTE")
     {
-
         return;
     }
     CodeBuffer& buffer = CodeBuffer::instance();
-
-
     std::string temp = t->reg;
     t->reg = fresh("%t");
+    t->type = "BYTE";
     buffer.emit(t->reg + " = trunc i32 " + temp + " to i8");
 }
+
+void convertIntToBool(TYPEClass* t){
+    if (t->type == "BOOL")
+    {
+        return;
+    }
+    CodeBuffer& buffer = CodeBuffer::instance();
+    std::string temp = t->reg;
+    t->reg = fresh("%t");
+    t->type = "BOOL";
+    buffer.emit(t->reg + " = trunc i32 " + temp + " to i1");
+}
+
+void convertBoolToInt(TYPEClass* t){
+    if (t->type == "INT")
+        return;
+    CodeBuffer& buffer = CodeBuffer::instance();
+    std::string temp = t->reg;
+    t->reg = fresh("%t");
+    t->type = "INT";
+    buffer.emit(t->reg + " = zext i1 " + temp + " to i32");
+}
+
 void convertBytesToInt(TYPEClass* x, TYPEClass* y){
     convertByteToInt(x);
     convertByteToInt(y);
@@ -176,6 +198,15 @@ void cast(TYPEClass* t, std::string type){
     }
     else if (t->type == "INT" && type == "BYTE"){
         convertIntToByte(t);
+    }
+
+}
+
+void implicitCast(TYPEClass* t, std::string type){
+    if (t->type == type)
+        return;
+    if (t->type == "BYTE" && type == "INT"){
+        convertByteToInt(t);
     }
 }
 
@@ -192,9 +223,10 @@ void checkByteOverflow(TYPEClass* t){
         truncZext(t);
     }
 }
-static int freshNum = 0;
+/*static int freshNum = 0;
 std::string fresh2(int num){
     return std::string("%" + std::to_string(num));
 }
+*/
 
 #endif //_UTILS_CPP
